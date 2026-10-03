@@ -1,95 +1,120 @@
-// Accessibility & Sensory Navigation Bar
+// Accessibility & Navigation Bar styled with nikko.dev Floating Pill Navbar
 import React from 'react';
-import { useSession, AppTheme, AppFont } from '../lib/state/testSessionContext';
-import { Sun, Moon, Eye, Type, RotateCcw, ShieldCheck } from 'lucide-react';
+import { useSession } from '../lib/state/testSessionContext';
+import { Sun, Moon, Eye, Type, RotateCcw, ExternalLink } from 'lucide-react';
 
 export const AccessibilityBar: React.FC = () => {
   const { theme, setTheme, font, setFont, restartSession, currentStage } = useSession();
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-opacity-80 border-b border-slate-800/60 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
-      {/* Brand Identity */}
-      <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 font-bold shadow-sm">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
-            <path d="M12 8a4 4 0 1 0 4 4 4 4 0 0 0-4-4z"/>
-          </svg>
-        </div>
-        <div>
-          <span className="font-extrabold tracking-tight text-sm uppercase text-slate-100 dark:text-slate-100 flex items-center gap-1.5">
-            NEUROSYNAPSE
-            <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-medium bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              CAT 3PL
-            </span>
-          </span>
-          <span className="text-[11px] block text-slate-400">Motor Psicométrico Adaptativo</span>
-        </div>
-      </div>
+    <header className="sticky top-4 z-50 px-4 mb-6">
+      <nav
+        className="max-w-5xl mx-auto glass-card rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4 border border-white/10 shadow-2xl backdrop-blur-2xl"
+        role="navigation"
+        aria-label="Navegación principal"
+      >
+        {/* Brand Identity - nikko.dev style */}
+        <div className="flex items-center gap-3">
+          <a
+            href="https://nikko.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2.5 group"
+            title="Ir a nikko.dev"
+          >
+            {/* nikko.dev circular brand mark */}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-300 text-slate-950 font-black flex items-center justify-center text-sm shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform font-mono">
+              N
+            </div>
+            <div className="leading-tight">
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-sm tracking-tight text-white font-display">
+                  Nikko<span className="text-emerald-400">Dev</span>
+                </span>
+                <span className="text-slate-500 font-mono text-[10px]">/</span>
+                <span className="text-xs font-mono text-emerald-400 font-semibold">
+                  psic
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-mono hidden sm:block">
+                psic.nikko.dev
+              </span>
+            </div>
+          </a>
 
-      {/* Neuroaffirming Controls */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
-        {/* OpenDyslexic Toggle */}
-        <button
-          onClick={() => setFont(font === 'opendyslexic' ? 'sans' : 'opendyslexic')}
-          className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all border ${
-            font === 'opendyslexic'
-              ? 'bg-indigo-600 text-white border-indigo-400 shadow-sm'
-              : 'bg-slate-800/50 text-slate-300 border-slate-700/60 hover:bg-slate-800'
-          }`}
-          title="Alternar entre tipografía de alta legibilidad y OpenDyslexic"
-        >
-          <Type className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">OpenDyslexic</span>
-        </button>
-
-        {/* Theme Selector (Dark, Light, Sepia/Anti-Irlen) */}
-        <div className="flex items-center bg-slate-900/60 p-0.5 rounded-lg border border-slate-700/60">
-          <button
-            onClick={() => setTheme('dark')}
-            className={`p-1.5 rounded-md text-xs transition-all ${
-              theme === 'dark' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'
-            }`}
-            title="Modo Oscuro Profundo (Bajo Arousal)"
-          >
-            <Moon className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => setTheme('sepia')}
-            className={`px-2 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1 ${
-              theme === 'sepia' ? 'bg-amber-700 text-amber-50 font-bold' : 'text-amber-300/80 hover:text-amber-200'
-            }`}
-            title="Filtro Cálido Sepia Anti-Irlen (Reduce estrés visual)"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span className="text-[10px] hidden md:inline">Sepia</span>
-          </button>
-          <button
-            onClick={() => setTheme('light')}
-            className={`p-1.5 rounded-md text-xs transition-all ${
-              theme === 'light' ? 'bg-slate-200 text-slate-900' : 'text-slate-400 hover:text-slate-200'
-            }`}
-            title="Modo Claro Suave"
-          >
-            <Sun className="w-3.5 h-3.5" />
-          </button>
+          {/* Live Engine Status Pulse */}
+          <div className="hidden md:flex items-center gap-2 pl-3 border-l border-white/10 text-[11px] font-mono text-slate-400">
+            <span className="pulse-dot"></span>
+            <span>CAT 3PL</span>
+            <span className="text-slate-600">·</span>
+            <span className="text-emerald-400/90 font-medium">LIVE</span>
+          </div>
         </div>
 
-        {/* Reset Session */}
-        {currentStage !== 'WELCOME' && (
+        {/* Accessibility & Theme Controls */}
+        <div className="flex items-center gap-2">
+          {/* OpenDyslexic Toggle */}
           <button
-            onClick={() => {
-              if (window.confirm('¿Deseas reiniciar la sesión desde el inicio? Todos los datos actuales se borrarán.')) {
-                restartSession();
-              }
-            }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all border border-transparent hover:border-rose-500/20"
-            title="Reiniciar sesión"
+            onClick={() => setFont(font === 'opendyslexic' ? 'sans' : 'opendyslexic')}
+            className={`px-3 py-1.5 rounded-full text-xs font-mono font-medium flex items-center gap-1.5 transition-all border ${
+              font === 'opendyslexic'
+                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-bold shadow-md shadow-emerald-500/20'
+                : 'bg-white/5 text-slate-300 border-white/10 hover:border-emerald-500/40 hover:text-white'
+            }`}
+            title="Alternar tipografía OpenDyslexic / Inter"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <Type className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Dyslexic</span>
           </button>
-        )}
-      </div>
+
+          {/* Theme Switcher Pill (Dark, Sepia, Light) */}
+          <div className="flex items-center bg-black/40 p-1 rounded-full border border-white/10">
+            <button
+              onClick={() => setTheme('dark')}
+              className={`p-1.5 rounded-full text-xs transition-all ${
+                theme === 'dark' ? 'bg-emerald-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
+              title="Modo Oscuro Profundo (nikko.dev default)"
+            >
+              <Moon className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setTheme('sepia')}
+              className={`px-2 py-1 rounded-full text-[11px] font-mono transition-all flex items-center gap-1 ${
+                theme === 'sepia' ? 'bg-amber-600 text-white font-bold' : 'text-amber-400/80 hover:text-amber-300'
+              }`}
+              title="Filtro Cálido Sepia Anti-Irlen"
+            >
+              <Eye className="w-3 h-3" />
+              <span className="hidden sm:inline">Sepia</span>
+            </button>
+            <button
+              onClick={() => setTheme('light')}
+              className={`p-1.5 rounded-full text-xs transition-all ${
+                theme === 'light' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
+              title="Modo Claro"
+            >
+              <Sun className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Reset button if active test */}
+          {currentStage !== 'WELCOME' && (
+            <button
+              onClick={() => {
+                if (window.confirm('¿Deseas reiniciar la sesión? Volverás a la pantalla de inicio.')) {
+                  restartSession();
+                }
+              }}
+              className="p-1.5 rounded-full text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all ml-1"
+              title="Reiniciar sesión"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </nav>
     </header>
   );
 };

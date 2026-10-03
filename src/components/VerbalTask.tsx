@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { VERBAL_ITEMS_POOL } from '../lib/psychometrics/verbalItemsPool';
-import { BookOpen, ArrowRight, CheckCircle } from 'lucide-react';
+import { BookOpen, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export const VerbalTask: React.FC = () => {
   const { verbalAnswers, submitVerbalAnswer, completeVerbalStage } = useSession();
@@ -23,74 +23,90 @@ export const VerbalTask: React.FC = () => {
     }
   };
 
-  const answeredCount = Object.keys(verbalAnswers).length;
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       {/* Header Info */}
-      <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-800">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-xs font-mono uppercase font-bold text-purple-400">
-              Etapa 3 • Inteligencia Cristalizada (Gc)
-            </span>
-            <h2 className="text-lg font-bold text-slate-100">
-              Razonamiento Relacional y Abstracción Conceptual
+            <span className="eyebrow text-purple-400">// ETAPA 3 · INTELIGENCIA CRISTALIZADA (Gc)</span>
+            <h2 className="text-xl sm:text-2xl font-bold font-display text-white tracking-tight">
+              Razonamiento Relacional
             </h2>
           </div>
         </div>
 
-        <div className="text-xs font-mono px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
+        <div className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-[#07090e] border border-white/10 text-slate-300">
           {currentIdx + 1} / {VERBAL_ITEMS_POOL.length}
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-8">
+      <div className="w-full bg-[#0d111a] border border-white/10 h-2 rounded-full overflow-hidden mb-6 p-[1px]">
         <div
-          className="bg-purple-500 h-full transition-all duration-300"
+          className="bg-gradient-to-r from-purple-500 to-emerald-400 h-full rounded-full transition-all duration-300 shadow-[0_0_12px_rgba(168,85,247,0.4)]"
           style={{ width: `${((currentIdx + 1) / VERBAL_ITEMS_POOL.length) * 100}%` }}
         />
       </div>
 
       {/* Analogy Prompt Card */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl mb-6">
-        <span className="text-[11px] font-mono uppercase text-slate-400 block mb-3">
-          Completa la analogía conceptual:
-        </span>
-        <div className="py-6 px-4 bg-slate-950/70 rounded-xl border border-slate-800 text-center mb-8">
-          <p className="text-lg sm:text-xl font-bold text-slate-100 tracking-wide">
-            {currentItem.analogyPrompt}
-          </p>
+      <div className="glass-card rounded-2xl overflow-hidden shadow-2xl mb-6">
+        {/* Terminal Header */}
+        <div className="terminal-header px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="terminal-dot bg-[#ff5f56]" />
+            <span className="terminal-dot bg-[#ffbd2e]" />
+            <span className="terminal-dot bg-[#27c93f]" />
+            <span className="ml-2 font-mono text-[11px] text-slate-400">psic@nikko.dev: ~/gc-analogies</span>
+          </div>
+          <span className="font-mono text-[10px] text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 font-bold">
+            ANALOGÍA #{currentIdx + 1}
+          </span>
         </div>
 
-        {/* 4 Multiple Choice Options */}
-        <div className="space-y-3">
-          {currentItem.options.map((optionText, optIdx) => {
-            const isSelected = selectedOption === optIdx;
-            return (
-              <button
-                key={`opt-${optIdx}`}
-                onClick={() => handleSelectOption(optIdx)}
-                className={`w-full py-4 px-5 rounded-xl border text-left font-medium transition-all flex items-center justify-between active:scale-[0.99] ${
-                  isSelected
-                    ? 'bg-purple-600/30 border-purple-400 text-purple-200 ring-2 ring-purple-500/40 shadow-md'
-                    : 'bg-slate-950/60 hover:bg-slate-800/80 border-slate-800 text-slate-200'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-slate-900 border border-slate-700/80 text-xs font-mono flex items-center justify-center text-slate-400">
-                    {String.fromCharCode(65 + optIdx)}
-                  </span>
-                  <span className="text-sm">{optionText}</span>
-                </div>
-                {isSelected && <CheckCircle className="w-4 h-4 text-purple-400" />}
-              </button>
-            );
-          })}
+        <div className="p-6 sm:p-8 space-y-6">
+          <span className="eyebrow text-slate-400 block">// COMPLETA LA RELACIÓN CONCEPTUAL</span>
+
+          <div className="py-6 px-5 bg-[#07090e]/80 rounded-xl border border-white/10 text-center shadow-inner">
+            <p className="text-lg sm:text-xl font-bold font-display text-white tracking-wide">
+              {currentItem.analogyPrompt}
+            </p>
+          </div>
+
+          {/* 4 Multiple Choice Options */}
+          <div className="space-y-3">
+            {currentItem.options.map((optionText, optIdx) => {
+              const isSelected = selectedOption === optIdx;
+              return (
+                <button
+                  key={`opt-${optIdx}`}
+                  onClick={() => handleSelectOption(optIdx)}
+                  className={`w-full py-4 px-5 rounded-xl border text-left font-medium transition-all flex items-center justify-between active:scale-[0.99] ${
+                    isSelected
+                      ? 'bg-emerald-500/15 border-emerald-500 text-emerald-200 shadow-[0_0_20px_rgba(52,211,153,0.15)] ring-1 ring-emerald-500/50'
+                      : 'bg-[#07090e]/60 hover:bg-[#0d111a] border-white/10 text-slate-200 hover:border-white/20'
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    <span
+                      className={`w-7 h-7 rounded-lg border text-xs font-mono font-bold flex items-center justify-center transition-colors ${
+                        isSelected
+                          ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+                          : 'bg-[#0d111a] border-white/10 text-slate-400'
+                      }`}
+                    >
+                      {String.fromCharCode(65 + optIdx)}
+                    </span>
+                    <span className="text-sm sm:text-base">{optionText}</span>
+                  </div>
+                  {isSelected && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -99,7 +115,11 @@ export const VerbalTask: React.FC = () => {
         <button
           onClick={handleNext}
           disabled={selectedOption === undefined}
-          className="py-3 px-6 rounded-xl font-bold bg-purple-600 hover:bg-purple-500 text-white shadow-lg transition-all disabled:opacity-40 flex items-center gap-2 text-sm"
+          className={`py-3.5 px-6 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg transition-all ${
+            selectedOption !== undefined
+              ? 'btn-nikko-primary text-white cursor-pointer'
+              : 'bg-[#0d111a] text-slate-600 border border-white/5 opacity-50 cursor-not-allowed'
+          }`}
         >
           <span>{currentIdx + 1 < VERBAL_ITEMS_POOL.length ? 'Siguiente Pregunta' : 'Finalizar Etapa 3'}</span>
           <ArrowRight className="w-4 h-4" />

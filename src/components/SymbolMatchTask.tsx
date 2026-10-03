@@ -147,38 +147,60 @@ export const SymbolMatchTask: React.FC = () => {
   if (phase === 'INSTRUCTIONS') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400">
-              <Zap className="w-6 h-6" />
+        <div className="glass-card rounded-2xl overflow-hidden shadow-2xl">
+          {/* Terminal Titlebar */}
+          <div className="terminal-header px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="terminal-dot bg-[#ff5f56]" />
+              <span className="terminal-dot bg-[#ffbd2e]" />
+              <span className="terminal-dot bg-[#27c93f]" />
+              <span className="ml-2 font-mono text-[11px] text-slate-400">psic@nikko.dev: ~/gs-discrimination</span>
             </div>
-            <div>
-              <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
-                Etapa 2B • Velocidad Cognitiva
-              </span>
-              <h2 className="text-xl font-bold text-slate-100">
-                Discriminación Rápida de Símbolos (Gs)
-              </h2>
-            </div>
+            <span className="font-mono text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold">
+              GS · 45s CHRONOMETRY
+            </span>
           </div>
 
-          <p className="text-sm text-slate-300 mb-6 leading-relaxed">
-            Esta tarea evalúa tu velocidad de procesamiento perceptual y motora durante un intervalo activo de <strong>45 segundos</strong>.
-          </p>
+          <div className="p-6 sm:p-8 space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="eyebrow text-amber-400">// ETAPA 2B · VELOCIDAD COGNITIVA (Gs)</span>
+                <h2 className="text-xl sm:text-2xl font-bold font-display text-white tracking-tight">
+                  Discriminación Rápida de Símbolos
+                </h2>
+              </div>
+            </div>
 
-          <div className="bg-slate-950/60 rounded-xl p-4 border border-slate-800/80 mb-6 space-y-3 text-xs text-slate-300">
-            <p>1. Verás un <strong>símbolo objetivo</strong> en la parte superior.</p>
-            <p>2. En la fila inferior aparecerá un grupo de <strong>4 símbolos</strong>.</p>
-            <p>3. Responde lo más rápido y preciso que puedas si el símbolo objetivo está presente: pulsa <strong>SÍ</strong> o <strong>NO</strong>.</p>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              Esta tarea evalúa tu velocidad de procesamiento perceptual visual y latencia de respuesta motora durante una ventana activa de <strong className="text-amber-300">45 segundos</strong>.
+            </p>
+
+            <div className="p-4 rounded-xl bg-[#07090e]/70 border border-white/10 space-y-2.5 text-xs text-slate-300 font-mono">
+              <div className="flex items-center gap-2 text-slate-200">
+                <span className="text-amber-400">01.</span>
+                <span>Se presenta un <strong>símbolo objetivo</strong> en la parte superior.</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-200">
+                <span className="text-amber-400">02.</span>
+                <span>En la fila inferior aparece un grupo de <strong>4 símbolos</strong>.</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-200">
+                <span className="text-amber-400">03.</span>
+                <span>Determina con precisión y rapidez si el objetivo está presente: pulsa <strong className="text-emerald-400">SÍ</strong> o <strong className="text-rose-400">NO</strong>.</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setPhase('RUNNING')}
+              className="btn-nikko-primary w-full py-3.5 px-6 rounded-xl font-bold text-white shadow-xl flex items-center justify-center gap-2.5"
+            >
+              <Play className="w-4 h-4 fill-current" />
+              <span>Iniciar Tarea de Velocidad (45s)</span>
+            </button>
           </div>
-
-          <button
-            onClick={() => setPhase('RUNNING')}
-            className="w-full py-3.5 px-6 rounded-xl font-semibold bg-amber-600 hover:bg-amber-500 text-white shadow-lg transition-all flex items-center justify-center gap-2"
-          >
-            <Play className="w-4 h-4 fill-current" />
-            <span>Comenzar Prueba de Velocidad (45s)</span>
-          </button>
         </div>
       </div>
     );
@@ -187,14 +209,15 @@ export const SymbolMatchTask: React.FC = () => {
   // Phase: Finished
   if (phase === 'FINISHED') {
     return (
-      <div className="max-w-md mx-auto px-4 py-12 text-center">
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-xl">
-          <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4 animate-bounce">
-            <Check className="w-6 h-6" />
+      <div className="max-w-md mx-auto px-4 py-16 text-center">
+        <div className="glass-card rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Check className="w-7 h-7 stroke-[2.5]" />
           </div>
-          <h3 className="text-lg font-bold text-slate-100 mb-1">¡Tiempo Concluido!</h3>
-          <p className="text-xs text-slate-400">
-            Procesando descomposición de latencias cronométricas submilisegundo...
+          <span className="eyebrow text-emerald-400">// CALIBRACIÓN CONCLUIDA</span>
+          <h3 className="text-xl font-bold font-display text-white mt-1 mb-2">¡Tiempo Finalizado!</h3>
+          <p className="text-xs text-slate-400 font-mono">
+            Descomponiendo latencias cronométricas y tiempo de decisión motora submilisegundo...
           </p>
         </div>
       </div>
@@ -204,68 +227,85 @@ export const SymbolMatchTask: React.FC = () => {
   // Phase: Running
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
-      {/* Timer Bar */}
-      <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+      {/* Timer & Trial Header */}
+      <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-amber-400" />
+          <span className="pulse-dot" />
           <span className="text-xs font-mono font-bold text-slate-300">
-            Ensayos resueltos: {currentTrialIdx}
+            Ensayos: <span className="text-emerald-400">{currentTrialIdx}</span>
           </span>
         </div>
-        <div className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300">
-          Tiempo: {timeLeft}s
+        <div className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-1.5">
+          <Zap className="w-3.5 h-3.5" />
+          <span>Tiempo: {timeLeft}s</span>
         </div>
       </div>
 
-      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-8">
+      {/* Progress Bar */}
+      <div className="w-full bg-[#0d111a] border border-white/10 h-2 rounded-full overflow-hidden mb-6 p-[1px]">
         <div
-          className="bg-amber-500 h-full transition-all duration-1000 ease-linear"
+          className="bg-gradient-to-r from-emerald-500 to-amber-400 h-full rounded-full transition-all duration-1000 ease-linear shadow-[0_0_12px_rgba(251,191,36,0.5)]"
           style={{ width: `${(timeLeft / 45) * 100}%` }}
         />
       </div>
 
       {/* Symbol Comparison Area */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 text-center shadow-xl mb-6">
-        <span className="text-[11px] font-mono uppercase text-slate-400 block mb-2">
-          Símbolo Objetivo:
-        </span>
-        <div className="w-20 h-20 mx-auto rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 flex items-center justify-center text-4xl text-amber-300 mb-8 shadow-inner">
-          {currentTrialData.target}
+      <div className="glass-card rounded-2xl overflow-hidden shadow-2xl mb-6">
+        {/* Terminal Header */}
+        <div className="terminal-header px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="terminal-dot bg-[#ff5f56]" />
+            <span className="terminal-dot bg-[#ffbd2e]" />
+            <span className="terminal-dot bg-[#27c93f]" />
+            <span className="ml-2 font-mono text-[11px] text-slate-400">psic@nikko.dev: ~/gs-matching</span>
+          </div>
+          <span className="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+            ENSAYO #{currentTrialIdx + 1}
+          </span>
         </div>
 
-        <span className="text-[11px] font-mono uppercase text-slate-400 block mb-3">
-          ¿Aparece en este grupo?
-        </span>
-        <div className="flex items-center justify-center gap-3 sm:gap-4 mb-8">
-          {currentTrialData.searchGroup.map((sym, idx) => (
-            <div
-              key={`search-${idx}`}
-              className="w-14 h-14 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-center text-2xl text-slate-100 shadow-sm"
-            >
-              {sym}
+        <div className="p-6 sm:p-8 text-center space-y-6">
+          <div>
+            <span className="eyebrow text-slate-400 block mb-3">// SÍMBOLO OBJETIVO</span>
+            <div className="w-24 h-24 mx-auto rounded-2xl bg-[#07090e] border-2 border-emerald-500/40 flex items-center justify-center text-5xl text-emerald-300 shadow-[0_0_25px_rgba(52,211,153,0.15)] select-none">
+              {currentTrialData.target}
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Pointerdown Touch Buttons */}
-        <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
-          <button
-            onPointerDown={() => handlePointerDown(true)}
-            onPointerUp={() => handlePointerUp(true)}
-            className="py-4 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white text-lg shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 select-none"
-          >
-            <Check className="w-5 h-5 stroke-[3]" />
-            <span>SÍ</span>
-          </button>
+          <div>
+            <span className="eyebrow text-slate-400 block mb-3">// ¿APARECE EN ESTE CONJUNTO?</span>
+            <div className="flex items-center justify-center gap-3 sm:gap-4">
+              {currentTrialData.searchGroup.map((sym, idx) => (
+                <div
+                  key={`search-${idx}`}
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[#07090e]/90 border border-white/10 hover:border-white/20 flex items-center justify-center text-2xl sm:text-3xl text-slate-100 shadow-inner select-none transition-all"
+                >
+                  {sym}
+                </div>
+              ))}
+            </div>
+          </div>
 
-          <button
-            onPointerDown={() => handlePointerDown(false)}
-            onPointerUp={() => handlePointerUp(false)}
-            className="py-4 rounded-xl font-bold bg-rose-600 hover:bg-rose-500 text-white text-lg shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 select-none"
-          >
-            <X className="w-5 h-5 stroke-[3]" />
-            <span>NO</span>
-          </button>
+          {/* Pointerdown Touch Response Buttons */}
+          <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto pt-2">
+            <button
+              onPointerDown={() => handlePointerDown(true)}
+              onPointerUp={() => handlePointerUp(true)}
+              className="py-4 rounded-xl font-bold bg-emerald-500/15 hover:bg-emerald-500/25 active:bg-emerald-500/35 border border-emerald-500/50 text-emerald-300 text-lg shadow-[0_0_20px_rgba(52,211,153,0.15)] transition-all active:scale-95 flex items-center justify-center gap-2 select-none"
+            >
+              <Check className="w-5 h-5 stroke-[3]" />
+              <span className="tracking-wide">SÍ</span>
+            </button>
+
+            <button
+              onPointerDown={() => handlePointerDown(false)}
+              onPointerUp={() => handlePointerUp(false)}
+              className="py-4 rounded-xl font-bold bg-rose-500/15 hover:bg-rose-500/25 active:bg-rose-500/35 border border-rose-500/50 text-rose-300 text-lg shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all active:scale-95 flex items-center justify-center gap-2 select-none"
+            >
+              <X className="w-5 h-5 stroke-[3]" />
+              <span className="tracking-wide">NO</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

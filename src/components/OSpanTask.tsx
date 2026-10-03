@@ -1,9 +1,8 @@
-// Complex Operation Span (O-Span) for Working Memory (Gwm)
-// Features 2 guided practice trials + 5 scored rounds with arithmetic verification and letter recall
-import React, { useState, useEffect, useRef } from 'react';
+// Complex Operation Span (O-Span) with nikko.dev Aesthetics
+import React, { useState, useEffect } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
-import { OSpanStep, OSpanRound, OSpanFinalScore, OSpanRoundResult } from '../lib/psychometrics/types';
-import { Check, X, RotateCcw, ArrowRight, ShieldAlert, Award } from 'lucide-react';
+import { OSpanRound, OSpanFinalScore, OSpanRoundResult } from '../lib/psychometrics/types';
+import { Check, X, RotateCcw, ArrowRight, ShieldAlert, Award, Layers } from 'lucide-react';
 
 const CANDIDATE_LETTERS = ['F', 'H', 'J', 'K', 'L', 'N', 'P', 'Q', 'R', 'S', 'T', 'Y'];
 
@@ -14,7 +13,7 @@ const PRACTICE_ROUNDS: OSpanRound[] = [
     isPractice: true,
     steps: [
       { equationText: '(2 * 3) + 1 = 7', claimedResult: 7, isEquationCorrect: true, letter: 'K' },
-      { equationText: '(8 / 2) - 1 = 2', claimedResult: 2, isEquationCorrect: false, letter: 'R' } // (4 - 1 = 3 != 2)
+      { equationText: '(8 / 2) - 1 = 2', claimedResult: 2, isEquationCorrect: false, letter: 'R' }
     ]
   },
   {
@@ -27,7 +26,7 @@ const PRACTICE_ROUNDS: OSpanRound[] = [
   }
 ];
 
-// Pre-defined 5 scored rounds with increasing cognitive load
+// Pre-defined 5 scored rounds
 const SCORED_ROUNDS: OSpanRound[] = [
   {
     spanLength: 2,
@@ -42,7 +41,7 @@ const SCORED_ROUNDS: OSpanRound[] = [
     isPractice: false,
     steps: [
       { equationText: '(3 * 3) - 2 = 7', claimedResult: 7, isEquationCorrect: true, letter: 'F' },
-      { equationText: '(10 / 2) + 3 = 9', claimedResult: 9, isEquationCorrect: false, letter: 'N' }, // (5 + 3 = 8 != 9)
+      { equationText: '(10 / 2) + 3 = 9', claimedResult: 9, isEquationCorrect: false, letter: 'N' },
       { equationText: '(4 * 3) - 4 = 8', claimedResult: 8, isEquationCorrect: true, letter: 'Q' }
     ]
   },
@@ -51,7 +50,7 @@ const SCORED_ROUNDS: OSpanRound[] = [
     isPractice: false,
     steps: [
       { equationText: '(7 * 2) - 5 = 9', claimedResult: 9, isEquationCorrect: true, letter: 'J' },
-      { equationText: '(12 / 3) + 4 = 7', claimedResult: 7, isEquationCorrect: false, letter: 'H' }, // (4 + 4 = 8 != 7)
+      { equationText: '(12 / 3) + 4 = 7', claimedResult: 7, isEquationCorrect: false, letter: 'H' },
       { equationText: '(5 * 3) - 6 = 9', claimedResult: 9, isEquationCorrect: true, letter: 'P' }
     ]
   },
@@ -60,7 +59,7 @@ const SCORED_ROUNDS: OSpanRound[] = [
     isPractice: false,
     steps: [
       { equationText: '(6 * 2) - 4 = 8', claimedResult: 8, isEquationCorrect: true, letter: 'T' },
-      { equationText: '(15 / 3) + 2 = 8', claimedResult: 8, isEquationCorrect: false, letter: 'K' }, // (5 + 2 = 7 != 8)
+      { equationText: '(15 / 3) + 2 = 8', claimedResult: 8, isEquationCorrect: false, letter: 'K' },
       { equationText: '(4 * 4) - 5 = 11', claimedResult: 11, isEquationCorrect: true, letter: 'R' },
       { equationText: '(8 / 4) + 6 = 8', claimedResult: 8, isEquationCorrect: true, letter: 'L' }
     ]
@@ -71,7 +70,7 @@ const SCORED_ROUNDS: OSpanRound[] = [
     steps: [
       { equationText: '(9 * 2) - 7 = 11', claimedResult: 11, isEquationCorrect: true, letter: 'S' },
       { equationText: '(16 / 4) + 5 = 9', claimedResult: 9, isEquationCorrect: true, letter: 'F' },
-      { equationText: '(5 * 4) - 8 = 10', claimedResult: 10, isEquationCorrect: false, letter: 'N' }, // (20 - 8 = 12 != 10)
+      { equationText: '(5 * 4) - 8 = 10', claimedResult: 10, isEquationCorrect: false, letter: 'N' },
       { equationText: '(18 / 3) + 3 = 9', claimedResult: 9, isEquationCorrect: true, letter: 'Y' },
       { equationText: '(7 * 3) - 9 = 12', claimedResult: 12, isEquationCorrect: true, letter: 'J' }
     ]
@@ -81,23 +80,17 @@ const SCORED_ROUNDS: OSpanRound[] = [
 export const OSpanTask: React.FC = () => {
   const { completeOSpan } = useSession();
 
-  // Mode: 'PRACTICE_WELCOME' | 'PRACTICE' | 'SCORED_TRANSITION' | 'SCORED'
   const [sessionPhase, setSessionPhase] = useState<
     'PRACTICE_WELCOME' | 'PRACTICE' | 'SCORED_TRANSITION' | 'SCORED'
   >('PRACTICE_WELCOME');
 
-  // Round tracking
   const [currentRoundIdx, setCurrentRoundIdx] = useState(0);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
-  // Step state: 'MATH' | 'LETTER' | 'RECALL' | 'FEEDBACK'
   const [subState, setSubState] = useState<'MATH' | 'LETTER' | 'RECALL' | 'FEEDBACK'>('MATH');
 
-  // Math tracking for current round
   const [mathAnswers, setMathAnswers] = useState<boolean[]>([]);
-  // Letter recall tracking
   const [recalledLetters, setRecalledLetters] = useState<string[]>([]);
 
-  // Results collectors
   const [practiceResults, setPracticeResults] = useState<OSpanRoundResult[]>([]);
   const [scoredResults, setScoredResults] = useState<OSpanRoundResult[]>([]);
 
@@ -111,11 +104,9 @@ export const OSpanTask: React.FC = () => {
     if (subState === 'LETTER') {
       timer = setTimeout(() => {
         if (currentStepIdx + 1 < currentRound.steps.length) {
-          // Next step
           setCurrentStepIdx(prev => prev + 1);
           setSubState('MATH');
         } else {
-          // All steps finished -> go to recall grid
           setSubState('RECALL');
         }
       }, 1400);
@@ -123,7 +114,6 @@ export const OSpanTask: React.FC = () => {
     return () => clearTimeout(timer);
   }, [subState, currentStepIdx, currentRound]);
 
-  // Handle Math Answer
   const handleMathChoice = (isTrue: boolean) => {
     if (!currentStep) return;
     const isCorrect = isTrue === currentStep.isEquationCorrect;
@@ -131,7 +121,6 @@ export const OSpanTask: React.FC = () => {
     setSubState('LETTER');
   };
 
-  // Handle letter recall selection
   const handleLetterSelect = (letter: string) => {
     if (recalledLetters.length < currentRound.spanLength) {
       setRecalledLetters(prev => [...prev, letter]);
@@ -142,9 +131,8 @@ export const OSpanTask: React.FC = () => {
     setRecalledLetters(prev => prev.slice(0, -1));
   };
 
-  // Submit recall sequence for current round
   const handleSubmitRecall = () => {
-    const targetLetters = currentRound.steps.map(s => s.letter);
+    const targetLetters = currentRound.steps.map((s: { letter: string }) => s.letter);
     let correctCount = 0;
     for (let i = 0; i < targetLetters.length; i++) {
       if (recalledLetters[i] === targetLetters[i]) {
@@ -175,20 +163,17 @@ export const OSpanTask: React.FC = () => {
       setScoredResults(nextScored);
 
       if (currentRoundIdx + 1 < SCORED_ROUNDS.length) {
-        // Next scored round
         setCurrentRoundIdx(prev => prev + 1);
         setCurrentStepIdx(0);
         setMathAnswers([]);
         setRecalledLetters([]);
         setSubState('MATH');
       } else {
-        // All scored rounds completed! Calculate Gwm score
         finalizeOSpan(nextScored);
       }
     }
   };
 
-  // Next Practice Round or Transition to Scored
   const handleNextPractice = () => {
     if (currentRoundIdx + 1 < PRACTICE_ROUNDS.length) {
       setCurrentRoundIdx(prev => prev + 1);
@@ -197,12 +182,10 @@ export const OSpanTask: React.FC = () => {
       setRecalledLetters([]);
       setSubState('MATH');
     } else {
-      // Done with practice
       setSessionPhase('SCORED_TRANSITION');
     }
   };
 
-  // Start Scored Phase
   const handleStartScored = () => {
     setSessionPhase('SCORED');
     setCurrentRoundIdx(0);
@@ -212,11 +195,9 @@ export const OSpanTask: React.FC = () => {
     setSubState('MATH');
   };
 
-  // Finalize O-Span Scores
   const finalizeOSpan = (results: OSpanRoundResult[]) => {
     const totalLettersPresented = results.reduce((sum, r) => sum + r.spanLength, 0);
     const totalLettersCorrect = results.reduce((sum, r) => sum + r.correctLetterCount, 0);
-    // Absolute O-Span score: only letters from perfectly recalled rounds count
     const absoluteOSpanScore = results.reduce(
       (sum, r) => (r.roundCompleteSuccess ? sum + r.spanLength : sum),
       0
@@ -226,10 +207,7 @@ export const OSpanTask: React.FC = () => {
     const totalMathCorrect = results.reduce((sum, r) => sum + r.mathAccuracyCount, 0);
     const mathAccuracyRate = Math.round((totalMathCorrect / Math.max(1, totalMathEquations)) * 100);
 
-    // Map absolute score to latent ability theta_Gwm
-    // Standard normative mapping: average span ~ 2.5-3.5 letters
-    const rawRatio = absoluteOSpanScore / totalLettersPresented; // 0..1
-    // Theta Gwm centered at 0.0 with typical range [-2.5, +2.5]
+    const rawRatio = absoluteOSpanScore / totalLettersPresented;
     const thetaGwm = Number(((rawRatio - 0.5) / 0.22).toFixed(2));
     const percentile = Math.round(
       Math.min(99.5, Math.max(1, (1 / (1 + Math.exp(-1.702 * thetaGwm))) * 100))
@@ -252,159 +230,166 @@ export const OSpanTask: React.FC = () => {
   if (sessionPhase === 'PRACTICE_WELCOME') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400">
-              <Award className="w-6 h-6" />
+        <div className="glass-card p-6 sm:p-8 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 font-bold">
+              <Layers className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xs font-mono uppercase tracking-wider text-indigo-400 font-bold">
-                Etapa 2A • Función Ejecutiva
-              </span>
-              <h2 className="text-xl font-bold text-slate-100">
+              <div className="eyebrow">// etapa 2a · competencia ejecutiva</div>
+              <h2 className="text-xl font-bold font-display text-white">
                 Memoria de Trabajo Operativa (O-Span)
               </h2>
             </div>
           </div>
 
-          <p className="text-sm text-slate-300 mb-4 leading-relaxed">
-            Esta tarea evalúa tu capacidad para mantener información activa en la mente mientras procesas operaciones matemáticas intermedias.
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Esta tarea evalúa tu capacidad para mantener y manipular información activa en la mente mientras intercalas operaciones aritméticas intermedias.
           </p>
 
-          <div className="bg-slate-950/60 rounded-xl p-4 border border-slate-800/80 mb-6 space-y-2.5 text-xs text-slate-300">
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 font-bold flex items-center justify-center shrink-0">1</span>
-              <span>Verás una operación aritmética simple. Indica si el resultado propuesto es <strong>Verdadero</strong> o <strong>Falso</strong>.</span>
+          <div className="bg-black/50 rounded-2xl p-4 sm:p-5 border border-white/5 space-y-3 text-xs text-slate-300 font-mono">
+            <div className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0">1</span>
+              <span>Evalúa la operación aritmética: pulsa <strong>Verdadero</strong> o <strong>Falso</strong>.</span>
             </div>
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 font-bold flex items-center justify-center shrink-0">2</span>
-              <span>Inmediatamente aparecerá una <strong>letra</strong> durante 1.4 segundos. Memorízala.</span>
+            <div className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0">2</span>
+              <span>Aparecerá una <strong>letra</strong> durante 1.4 segundos. Memorízala en orden.</span>
             </div>
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 font-bold flex items-center justify-center shrink-0">3</span>
-              <span>Al finalizar la serie, selecciona las letras en el <strong>orden exacto</strong> en que aparecieron.</span>
+            <div className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0">3</span>
+              <span>Al terminar la serie, reconstruye la secuencia de letras en el teclado.</span>
             </div>
           </div>
 
-          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl mb-6 text-xs text-amber-300 flex items-center gap-2">
+          <div className="p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-2xl text-xs text-amber-300 flex items-center gap-3">
             <ShieldAlert className="w-4 h-4 shrink-0" />
-            <span>Realizaremos <strong>2 ensayos de práctica guiados</strong> con retroalimentación no puntuada para que te familiarices con la interfaz.</span>
+            <span>Incluye <strong>2 ensayos de práctica guiados</strong> con retroalimentación para afinar la interfaz sin afectar tus puntuaciones.</span>
           </div>
 
           <button
             onClick={() => setSessionPhase('PRACTICE')}
-            className="w-full py-3.5 px-6 rounded-xl font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg transition-all flex items-center justify-center gap-2"
+            className="btn-nikko-primary w-full py-4 text-xs font-bold uppercase tracking-wider cursor-pointer"
           >
             <span>Iniciar Práctica Guiada</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
       </div>
     );
   }
 
-  // Phase Transition: After Practice -> Scored Phase
+  // Phase Transition: After Practice
   if (sessionPhase === 'SCORED_TRANSITION') {
     return (
-      <div className="max-w-xl mx-auto px-4 py-10 text-center">
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-          <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
-            <Check className="w-6 h-6" />
+      <div className="max-w-xl mx-auto px-4 py-12 text-center">
+        <div className="glass-card p-6 sm:p-8 space-y-4">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+            <Check className="w-6 h-6 stroke-[3]" />
           </div>
-          <h2 className="text-xl font-bold text-slate-100 mb-2">¡Práctica Completada!</h2>
-          <p className="text-sm text-slate-300 mb-6">
-            Ya conoces la dinámica del ejercicio. A continuación iniciaremos la evaluación oficial de 5 rondas con series de longitud creciente.
+          <div className="eyebrow">// práctica superada</div>
+          <h2 className="text-xl font-bold font-display text-white">¡Mecánica Asimilada!</h2>
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            A continuación iniciamos las 5 rondas oficiales con series de longitud creciente.
           </p>
           <button
             onClick={handleStartScored}
-            className="w-full py-3.5 px-6 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg transition-all flex items-center justify-center gap-2"
+            className="btn-nikko-primary w-full py-4 text-xs font-bold uppercase tracking-wider cursor-pointer mt-4"
           >
             <span>Comenzar Evaluación Oficial</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
       </div>
     );
   }
 
-  // Active Rounds (Practice or Scored)
+  // Active Rounds
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      {/* Header Info */}
-      <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-800">
-        <div>
-          <span className="text-xs font-mono uppercase font-bold text-indigo-400">
-            {sessionPhase === 'PRACTICE' ? 'Modo Práctica (No Puntuado)' : 'Evaluación Oficial O-Span'}
+    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      {/* Terminal Titlebar Container */}
+      <div className="glass-card p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="os-dots">
+            <span className="os-dot os-dot-red"></span>
+            <span className="os-dot os-dot-yellow"></span>
+            <span className="os-dot os-dot-green"></span>
+          </div>
+          <span className="text-xs font-mono text-emerald-400 font-bold">
+            {sessionPhase === 'PRACTICE' ? 'Modo Práctica' : 'O-Span Oficial'}
           </span>
-          <h3 className="text-base font-semibold text-slate-100">
-            Ronda {currentRoundIdx + 1} de {roundsPool.length} • Serie de {currentRound.spanLength} letras
-          </h3>
+          <span className="text-slate-600 font-mono text-xs">/</span>
+          <span className="text-xs font-mono text-slate-300">
+            Ronda {currentRoundIdx + 1} de {roundsPool.length} ({currentRound.spanLength} letras)
+          </span>
         </div>
-        <div className="text-xs font-mono px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
+
+        <div className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-black/40 border border-white/10 text-slate-400">
           Paso {currentStepIdx + 1} / {currentRound.spanLength}
         </div>
       </div>
 
-      {/* Sub-State: MATH VERIFICATION */}
+      {/* Sub-State: MATH */}
       {subState === 'MATH' && currentStep && (
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-8 text-center shadow-xl">
-          <span className="text-xs text-slate-400 block mb-2 font-mono uppercase">
-            ¿Es correcto el resultado de la siguiente ecuación?
+        <div className="glass-card p-8 sm:p-10 text-center space-y-6">
+          <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+            ¿Es correcto el resultado de la ecuación?
           </span>
-          <div className="my-8 py-6 px-4 bg-slate-950/80 rounded-2xl border border-slate-800 text-3xl sm:text-4xl font-mono font-bold tracking-wider text-slate-100">
+          <div className="py-8 px-4 bg-black/60 rounded-2xl border border-white/10 text-3xl sm:text-4xl font-mono font-bold tracking-widest text-white shadow-inner">
             {currentStep.equationText}
           </div>
 
           <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
             <button
               onPointerDown={() => handleMathChoice(true)}
-              className="py-4 px-6 rounded-xl font-bold bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600/30 text-emerald-300 flex items-center justify-center gap-2 text-base transition-all active:scale-95"
+              className="py-4 px-6 rounded-2xl font-bold bg-emerald-500/15 border border-emerald-500/40 hover:bg-emerald-500/25 text-emerald-300 flex items-center justify-center gap-2 text-sm transition-all active:scale-95 cursor-pointer font-mono"
             >
-              <Check className="w-5 h-5" />
+              <Check className="w-4 h-4 stroke-[3]" />
               <span>Verdadero</span>
             </button>
             <button
               onPointerDown={() => handleMathChoice(false)}
-              className="py-4 px-6 rounded-xl font-bold bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600/30 text-rose-300 flex items-center justify-center gap-2 text-base transition-all active:scale-95"
+              className="py-4 px-6 rounded-2xl font-bold bg-rose-500/15 border border-rose-500/40 hover:bg-rose-500/25 text-rose-300 flex items-center justify-center gap-2 text-sm transition-all active:scale-95 cursor-pointer font-mono"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 stroke-[3]" />
               <span>Falso</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Sub-State: LETTER MEMORIZATION (1.4s flash) */}
+      {/* Sub-State: LETTER FLASH */}
       {subState === 'LETTER' && currentStep && (
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-12 text-center shadow-xl animate-fade-in">
-          <span className="text-xs text-slate-400 block mb-3 font-mono uppercase">
-            Memoriza esta letra:
+        <div className="glass-card p-12 text-center space-y-4">
+          <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+            Memoriza la letra:
           </span>
-          <div className="w-32 h-32 mx-auto rounded-2xl bg-indigo-600/20 border-2 border-indigo-500/50 flex items-center justify-center text-6xl font-black font-mono text-indigo-300 shadow-inner">
+          <div className="w-32 h-32 mx-auto rounded-3xl bg-emerald-500/10 border-2 border-emerald-500/40 flex items-center justify-center text-6xl font-black font-mono text-emerald-300 shadow-xl shadow-emerald-500/15">
             {currentStep.letter}
           </div>
         </div>
       )}
 
-      {/* Sub-State: RECALL GRID */}
+      {/* Sub-State: RECALL */}
       {subState === 'RECALL' && (
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-          <div className="text-center mb-6">
-            <h4 className="text-base font-bold text-slate-100">Recuperación de Secuencia</h4>
+        <div className="glass-card p-6 sm:p-8 space-y-6">
+          <div className="text-center space-y-1">
+            <div className="eyebrow">// recuperación de memoria</div>
+            <h4 className="text-lg font-bold font-display text-white">Secuencia de Letras</h4>
             <p className="text-xs text-slate-400">
               Selecciona las {currentRound.spanLength} letras en el orden exacto en que aparecieron.
             </p>
           </div>
 
           {/* Slots Display */}
-          <div className="flex items-center justify-center gap-2.5 mb-8">
+          <div className="flex items-center justify-center gap-3">
             {Array.from({ length: currentRound.spanLength }).map((_, idx) => (
               <div
                 key={`slot-${idx}`}
-                className={`w-12 h-14 rounded-xl border flex items-center justify-center font-mono text-2xl font-bold transition-all ${
+                className={`w-12 h-14 rounded-2xl border flex items-center justify-center font-mono text-2xl font-bold transition-all ${
                   recalledLetters[idx]
-                    ? 'bg-indigo-600/20 border-indigo-400 text-indigo-300'
-                    : 'bg-slate-950/80 border-slate-800 text-slate-600'
+                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-md shadow-emerald-500/10'
+                    : 'bg-black/60 border-white/10 text-slate-600'
                 }`}
               >
                 {recalledLetters[idx] || '_'}
@@ -412,8 +397,8 @@ export const OSpanTask: React.FC = () => {
             ))}
           </div>
 
-          {/* 12 Candidate Letters Grid */}
-          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5 max-w-md mx-auto mb-6">
+          {/* Letters Grid */}
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5 max-w-md mx-auto">
             {CANDIDATE_LETTERS.map(letter => {
               const countUsed = recalledLetters.filter(l => l === letter).length;
               return (
@@ -421,10 +406,10 @@ export const OSpanTask: React.FC = () => {
                   key={letter}
                   onPointerDown={() => handleLetterSelect(letter)}
                   disabled={recalledLetters.length >= currentRound.spanLength}
-                  className={`h-12 rounded-xl border font-mono text-lg font-bold transition-all active:scale-95 ${
+                  className={`h-12 rounded-2xl border font-mono text-lg font-bold transition-all active:scale-95 cursor-pointer ${
                     countUsed > 0
-                      ? 'bg-indigo-900/30 border-indigo-500/50 text-indigo-300'
-                      : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-200'
+                      ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400'
+                      : 'bg-black/50 border-white/10 hover:border-emerald-500/40 text-slate-200'
                   }`}
                 >
                   {letter}
@@ -433,68 +418,62 @@ export const OSpanTask: React.FC = () => {
             })}
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
+          {/* Buttons */}
+          <div className="flex items-center justify-between gap-4 max-w-md mx-auto pt-2">
             <button
               onClick={handleBackspaceLetter}
               disabled={recalledLetters.length === 0}
-              className="py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 flex items-center gap-1.5 disabled:opacity-40 transition-all"
+              className="py-2.5 px-4 rounded-full text-xs font-mono bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center gap-2 disabled:opacity-40 transition-all cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Borrar última</span>
+              <span>Borrar</span>
             </button>
 
             <button
               onClick={handleSubmitRecall}
               disabled={recalledLetters.length !== currentRound.spanLength}
-              className="py-2.5 px-6 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md disabled:opacity-40 transition-all flex items-center gap-1.5"
+              className="btn-nikko-primary py-2.5 px-6 text-xs font-mono font-bold uppercase disabled:opacity-40 cursor-pointer"
             >
-              <span>Confirmar Serie</span>
+              <span>Confirmar</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       )}
 
-      {/* Sub-State: PRACTICE FEEDBACK (Only shown during practice rounds) */}
+      {/* Sub-State: PRACTICE FEEDBACK */}
       {subState === 'FEEDBACK' && practiceResults.length > 0 && (
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl text-center">
-          <div className="w-12 h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-4">
+        <div className="glass-card p-6 sm:p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
             <Award className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-slate-100 mb-2">
-            Retroalimentación de la Práctica
+          <h3 className="text-lg font-bold font-display text-white">
+            Retroalimentación de Ensayo
           </h3>
 
-          <div className="bg-slate-950/60 rounded-xl p-4 border border-slate-800/80 max-w-sm mx-auto mb-6 text-xs text-left space-y-2">
+          <div className="bg-black/50 rounded-2xl p-4 border border-white/10 max-w-sm mx-auto text-xs text-left space-y-2 font-mono">
             <div className="flex justify-between">
-              <span className="text-slate-400">Precisión en matemáticas:</span>
+              <span className="text-slate-400">Aciertos matemáticos:</span>
               <span className="text-emerald-400 font-bold">
                 {practiceResults[practiceResults.length - 1].mathAccuracyCount} /{' '}
-                {practiceResults[practiceResults.length - 1].mathTotalCount} correctas
+                {practiceResults[practiceResults.length - 1].mathTotalCount}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Letras recordadas correctamente:</span>
-              <span className="text-indigo-400 font-bold">
+              <span className="text-slate-400">Letras recordadas:</span>
+              <span className="text-sky-400 font-bold">
                 {practiceResults[practiceResults.length - 1].correctLetterCount} /{' '}
                 {practiceResults[practiceResults.length - 1].spanLength}
-              </span>
-            </div>
-            <div className="pt-2 border-t border-slate-800 flex justify-between">
-              <span className="text-slate-400">Secuencia objetivo:</span>
-              <span className="font-mono text-slate-200">
-                {practiceResults[practiceResults.length - 1].targetLetters.join(' - ')}
               </span>
             </div>
           </div>
 
           <button
             onClick={handleNextPractice}
-            className="py-3 px-6 rounded-xl font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all inline-flex items-center gap-2"
+            className="btn-nikko-primary py-3 px-8 text-xs font-bold uppercase tracking-wider cursor-pointer"
           >
             <span>Continuar</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
       )}

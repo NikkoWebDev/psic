@@ -69,11 +69,54 @@ const StageRenderer: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <SessionProvider>
-      <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 transition-colors duration-200">
+      <div className="min-h-screen flex flex-col bg-[#07090e] text-slate-100 transition-colors duration-200">
         <AccessibilityBar />
         <main className="flex-1 w-full pb-12">
           <StageRenderer />
         </main>
+
+        {/* Footer matching nikko.dev aesthetic */}
+        <footer className="w-full border-t border-white/10 bg-[#07090e]/80 backdrop-blur-md py-8 px-4 text-xs font-mono text-slate-400">
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <a
+                href="https://nikko.dev"
+                target="_blank"
+                rel="noreferrer"
+                className="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-xs hover:border-emerald-400 hover:text-emerald-300 transition-colors"
+                title="Ir a nikko.dev"
+              >
+                N
+              </a>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-200 font-bold">psic.nikko.dev</span>
+                  <span className="text-slate-600">/</span>
+                  <span className="text-emerald-400">NikkoDev Engine</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-0.5 font-sans">
+                  Plataforma psicométrica adaptativa neuroafirmante (CAT IRT 3PL · CHC · Thurstonian IRT)
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 text-[11px]">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0d111a] border border-white/10 text-slate-300">
+                <span className="pulse-dot" />
+                <span>psic.nikko.dev: online</span>
+              </div>
+
+              <a
+                href="https://nikko.dev"
+                target="_blank"
+                rel="noreferrer"
+                className="text-slate-400 hover:text-emerald-400 transition-colors underline"
+              >
+                nikko.dev
+              </a>
+            </div>
+          </div>
+        </footer>
       </div>
     </SessionProvider>
   );
