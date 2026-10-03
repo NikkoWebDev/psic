@@ -6,12 +6,17 @@ interface DecompressionScreenProps {
   stageTitle: string;
   nextStageName: string;
   onContinue: () => void;
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export const DecompressionScreen: React.FC<DecompressionScreenProps> = ({
   stageTitle,
   nextStageName,
-  onContinue
+  onContinue,
+  secondaryAction
 }) => {
   const [breathPhase, setBreathPhase] = useState<'Inhala suavemente' | 'Sostén el aire' | 'Exhala despacio'>('Inhala suavemente');
 
@@ -69,13 +74,24 @@ export const DecompressionScreen: React.FC<DecompressionScreenProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={onContinue}
-            className="btn-nikko-primary w-full py-3.5 px-6 rounded-xl font-bold text-white shadow-xl flex items-center justify-center gap-2 text-sm"
-          >
-            <span>Continuar a: {nextStageName}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="space-y-3">
+            <button
+              onClick={onContinue}
+              className="btn-nikko-primary w-full py-3.5 px-6 rounded-xl font-bold text-white shadow-xl flex items-center justify-center gap-2 text-sm"
+            >
+              <span>Continuar a: {nextStageName}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            {secondaryAction && (
+              <button
+                onClick={secondaryAction.onClick}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-mono text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span>{secondaryAction.label}</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

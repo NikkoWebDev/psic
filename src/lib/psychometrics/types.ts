@@ -222,6 +222,8 @@ export interface PersonalityAndPhenotypeScores {
   identifiedLevers: [string, string];
 }
 
+export type EvaluationScope = 'FULL' | 'COGNITIVE_ONLY' | 'PHENOTYPE_ONLY' | 'PARTIAL';
+
 export interface FullPsychometricReport {
   metadata: {
     timestamp: string;
@@ -229,6 +231,15 @@ export interface FullPsychometricReport {
     sessionDurationMinutes: number;
     drasgowFitStatisticLz: number;
     testingIntegrityFlag: 'VALID' | 'PROVISIONAL_ATTENTION_SLIPS';
+    evaluationScope?: EvaluationScope;
+    completedModules?: {
+      gfMatrices: boolean;
+      gwmOSpan: boolean;
+      gsSpeed: boolean;
+      gcVerbal: boolean;
+      personality4A: boolean;
+      phenotype4B: boolean;
+    };
   };
   cognitiveIntelligenceCHC: DiscrepancyProfile;
   personalityAndPhenotype: PersonalityAndPhenotypeScores;

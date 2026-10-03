@@ -2,10 +2,10 @@
 // Allows user to either continue smoothly or safely pause session and resume later
 import React, { useState } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
-import { BatteryCharging, ArrowRight, PauseCircle, Sparkles, CheckCircle2 } from 'lucide-react';
+import { BatteryCharging, ArrowRight, PauseCircle, Sparkles, CheckCircle2, BarChart3 } from 'lucide-react';
 
 export const EnergyCheckpoint: React.FC = () => {
-  const { setStage } = useSession();
+  const { setStage, generatePartialReport } = useSession();
   const [isPausedView, setIsPausedView] = useState(false);
   const [isReCalibrating, setIsReCalibrating] = useState(false);
   const [reCalibrationSeconds, setReCalibrationSeconds] = useState(30);
@@ -169,6 +169,14 @@ export const EnergyCheckpoint: React.FC = () => {
             >
               <PauseCircle className="w-4 h-4 text-slate-400" />
               <span>Pausar sesión y continuar más tarde</span>
+            </button>
+
+            <button
+              onClick={() => generatePartialReport('COGNITIVE_ONLY')}
+              className="w-full py-3 px-6 rounded-xl font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all flex items-center justify-center gap-2 text-xs font-mono"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>Ver Análisis Parcial de CI Ahora (Gf + Gwm + Gs)</span>
             </button>
           </div>
         </div>

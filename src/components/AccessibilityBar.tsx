@@ -1,15 +1,30 @@
-// Accessibility & Navigation Bar styled with nikko.dev Floating Pill Navbar
-import React from 'react';
+import React, { useState } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
-import { Sun, Moon, Eye, Type, RotateCcw, ExternalLink } from 'lucide-react';
+import { Sun, Moon, Eye, Type, RotateCcw, BarChart2, ChevronDown, Brain, Layers, Sparkles } from 'lucide-react';
 
 export const AccessibilityBar: React.FC = () => {
-  const { theme, setTheme, font, setFont, restartSession, currentStage } = useSession();
+  const {
+    theme,
+    setTheme,
+    font,
+    setFont,
+    restartSession,
+    currentStage,
+    setStage,
+    setSelectedModuleMode,
+    generatePartialReport,
+    catState,
+    triadResponses
+  } = useSession();
+
+  const [showModulesMenu, setShowModulesMenu] = useState(false);
+
+  const hasAnyData = catState.administeredItems.length > 0 || Object.keys(triadResponses).length > 0;
 
   return (
     <header className="sticky top-4 z-50 px-4 mb-6">
       <nav
-        className="max-w-5xl mx-auto glass-card rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4 border border-white/10 shadow-2xl backdrop-blur-2xl"
+        className="max-w-5xl mx-auto glass-card rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4 border border-white/10 shadow-2xl backdrop-blur-2xl relative"
         role="navigation"
         aria-label="Navegación principal"
       >
@@ -53,6 +68,72 @@ export const AccessibilityBar: React.FC = () => {
 
         {/* Accessibility & Theme Controls */}
         <div className="flex items-center gap-2">
+          {/* Modules & Partial Analysis Menu Button (active during test) */}
+          {currentStage !== 'WELCOME' && (
+            <div className="relative">
+              <button
+                onClick={() => setShowModulesMenu(prev => !prev)}
+                className="px-3 py-1.5 rounded-full text-xs font-mono font-medium flex items-center gap-1.5 transition-all border bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 hover:bg-emerald-500/20"
+                title="Menú de Módulos y Análisis Parcial"
+              >
+                <BarChart2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Módulos</span>
+                <ChevronDown className="w-3 h-3" />
+              </button>
+
+              {/* Floating Dropdown */}
+              {showModulesMenu && (
+                <div
+                  className="absolute right-0 mt-2 w-72 p-2 rounded-2xl bg-[#0b0f19] border border-white/15 shadow-2xl z-50 text-xs font-mono space-y-1 backdrop-blur-2xl"
+                  onMouseLeave={() => setShowModulesMenu(false)}
+                >
+                  <div className="px-3 py-1.5 text-[10px] text-slate-400 uppercase tracking-wider border-b border-white/10">
+                    // Navegación Modular
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setShowModulesMenu(false);
+                      setSelectedModuleMode('COGNITIVE_ONLY');
+                      setStage('STAGE_1_GF_MATRICES');
+                    }}
+                    className="w-full px-3 py-2 rounded-xl text-left hover:bg-white/5 flex items-center gap-2 text-slate-200 transition-colors"
+                  >
+                    <Brain className="w-4 h-4 text-cyan-400" />
+                    <span>Módulo CI / CHC (Matrices)</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowModulesMenu(false);
+                      setSelectedModuleMode('PHENOTYPE_ONLY');
+                      setStage('STAGE_4A_TRIADS_PERSONALITY');
+                    }}
+                    className="w-full px-3 py-2 rounded-xl text-left hover:bg-white/5 flex items-center gap-2 text-slate-200 transition-colors"
+                  >
+                    <Layers className="w-4 h-4 text-purple-400" />
+                    <span>Módulo Fenotipo (Tríadas)</span>
+                  </button>
+
+                  {hasAnyData && (
+                    <div className="pt-1 border-t border-white/10">
+                      <button
+                        onClick={() => {
+                          setShowModulesMenu(false);
+                          generatePartialReport();
+                        }}
+                        className="w-full px-3 py-2 rounded-xl text-left bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 font-bold flex items-center gap-2 border border-emerald-500/20 transition-colors"
+                      >
+                        <Sparkles className="w-4 h-4 text-emerald-400" />
+                        <span>Ver Análisis Parcial Ahora</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* OpenDyslexic Toggle */}
           <button
             onClick={() => setFont(font === 'opendyslexic' ? 'sans' : 'opendyslexic')}

@@ -110,4 +110,70 @@ describe('Gemini Spark Handshake Serializer Tests', () => {
     expect(parsed.flag).toBe('2E_AACC_ADHD');
     expect(parsed.mq).toBe(84);
   });
+
+  it('serializes dynamic neurodivergent phenotype values without hardcoded fallbacks', () => {
+    const customReport: FullPsychometricReport = {
+      ...mockReport,
+      personalityAndPhenotype: {
+        ...mockReport.personalityAndPhenotype,
+        monotropismMQScore: 93,
+        monotropismProfile: 'DEEP_TUNNEL',
+        bdefsTimeMyopia: 91,
+        bdefsInhibition: 82,
+        bdefsActivation: 89,
+        bdefsEmotionalRegulation: 73,
+        catQScore: 88,
+        maskingBurnoutRisk: 'SEVERE',
+        dunnQuadrant: 'SENSATION_AVOIDING',
+        dunnThreshold: 'HIGH',
+        dabrowski: {
+          intellectual: 99,
+          imaginative: 95,
+          emotional: 90,
+          psychomotor: 85,
+          sensual: 80
+        }
+      }
+    };
+
+    const xml = generateGeminiProfileXML(customReport);
+    expect(xml).toContain('<monotropism_mq_score>93</monotropism_mq_score>');
+    expect(xml).toContain('<time_myopia_score>91</time_myopia_score>');
+    expect(xml).toContain('<inhibition_impulsivity_score>82</inhibition_impulsivity_score>');
+    expect(xml).toContain('<activation_initiation_score>89</activation_initiation_score>');
+    expect(xml).toContain('<emotional_regulation_score>73</emotional_regulation_score>');
+    expect(xml).toContain('<total_score>88</total_score>');
+    expect(xml).toContain('<masking_burnout_risk>SEVERE</masking_burnout_risk>');
+    expect(xml).toContain('<quadrant>SENSATION_AVOIDING</quadrant>');
+    expect(xml).toContain('<neurological_threshold>HIGH</neurological_threshold>');
+    expect(xml).toContain('<intellectual>99</intellectual>');
+    expect(xml).toContain('<imaginative>95</imaginative>');
+    expect(xml).toContain('<emotional>90</emotional>');
+    expect(xml).toContain('<psychomotor>85</psychomotor>');
+    expect(xml).toContain('<sensual>80</sensual>');
+  });
+
+  it('correctly includes evaluation_scope and completed_modules tags in XML', () => {
+    const partialReport: FullPsychometricReport = {
+      ...mockReport,
+      metadata: {
+        ...mockReport.metadata,
+        evaluationScope: 'COGNITIVE_ONLY',
+        completedModules: {
+          gfMatrices: true,
+          gwmOSpan: true,
+          gsSpeed: true,
+          gcVerbal: true,
+          personality4A: false,
+          phenotype4B: false
+        }
+      }
+    };
+
+    const xml = generateGeminiProfileXML(partialReport);
+    expect(xml).toContain('<evaluation_scope>COGNITIVE_ONLY</evaluation_scope>');
+    expect(xml).toContain('<gf_matrices>true</gf_matrices>');
+    expect(xml).toContain('<personality_4a>false</personality_4a>');
+    expect(xml).toContain('<phenotype_4b>false</phenotype_4b>');
+  });
 });

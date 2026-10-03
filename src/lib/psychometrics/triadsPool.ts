@@ -189,7 +189,7 @@ export const TRIADS_POOL: TriadItem[] = [
     statements: [
       { id: '4b_03_a', text: 'Cambiar de tema o actividad bruscamente cuando estoy concentrado me genera una fricción dolorosa.', trait: 'monotropism_mq', weight: 1 },
       { id: '4b_03_b', text: 'Ensayo diálogos mentales previamente para saber qué responder con naturalidad en interacciones sociales.', trait: 'cat_q_camouflaging', weight: 1 },
-      { id: '4b_03_c', text: 'Experimento las emociones con una intensidad profunda y conmovedora que me desborda.', trait: 'dabrowski_emotional', weight: 1 }
+      { id: '4b_03_c', text: 'Me cuesta apaciguar o modular la frustración y la rabia inmediata cuando un plan se ve truncado repentinamente.', trait: 'bdefs_emotional_regulation', weight: 1 }
     ]
   },
   {
@@ -249,7 +249,7 @@ export const TRIADS_POOL: TriadItem[] = [
     statements: [
       { id: '4b_09_a', text: 'Ambientes con olores fuertes o luces parpadeantes me provocan cefalea o niebla mental.', trait: 'dunn_sensory_sensitivity', weight: 1 },
       { id: '4b_09_b', text: 'Actúo por impulsos inmediatos de curiosidad posponiendo deberes administrativos críticos.', trait: 'bdefs_inhibition', weight: 1 },
-      { id: '4b_09_c', text: 'Visualizo mentalmente conceptos abstractos como formas espaciales tridimensionales dinámicas.', trait: 'dabrowski_imaginative', weight: 1 }
+      { id: '4b_09_c', text: 'Experimento un éxtasis sensorial y estético intenso ante la música, los colores o ciertas texturas armónicas.', trait: 'dabrowski_sensual', weight: 1 }
     ]
   },
   {
@@ -278,7 +278,7 @@ export const TRIADS_POOL: TriadItem[] = [
     triadNumber: 27,
     statements: [
       { id: '4b_12_a', text: 'Compro o inicio proyectos nuevos con emoción desbordante que abandono a la semana.', trait: 'bdefs_inhibition', weight: 1 },
-      { id: '4b_12_b', text: 'Siento un dolor existencial profundo ante la finitud del tiempo y los límites del conocimiento.', trait: 'dabrowski_emotional', weight: 1 },
+      { id: '4b_12_b', text: 'Las emociones intensas nublan temporalmente mi capacidad de tomar distancia y autorregularme con serenidad.', trait: 'bdefs_emotional_regulation', weight: 1 },
       { id: '4b_12_c', text: 'Fuerzo deliberadamente el contacto visual aunque me resulte incómodo para parecer atento.', trait: 'cat_q_camouflaging', weight: 1 }
     ]
   },
@@ -309,7 +309,7 @@ export const TRIADS_POOL: TriadItem[] = [
     statements: [
       { id: '4b_15_a', text: 'Necesito espacios de oscuridad o silencio total para descompresionarme al final del día.', trait: 'dunn_sensory_sensitivity', weight: 1 },
       { id: '4b_15_b', text: 'Pierdo la noción del tiempo cuando un tema despierta mi curiosidad intrínseca.', trait: 'bdefs_time_myopia', weight: 1 },
-      { id: '4b_15_c', text: 'Siento las injusticias ajenas como si me estuvieran ocurriendo físicamente a mí.', trait: 'dabrowski_emotional', weight: 1 }
+      { id: '4b_15_c', text: 'Percibo los detalles estéticos, los aromas y las texturas con una conmoción sensorial placentera pero a veces abrumadora.', trait: 'dabrowski_sensual', weight: 1 }
     ]
   }
 ];

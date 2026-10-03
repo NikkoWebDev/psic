@@ -50,34 +50,34 @@ export function scoreThurstonianTriads(responses: Record<string, TriadResponse>)
   const getNormScore = (key: TraitKey, defaultVal = 50): number => {
     const entry = traitUtilities[key];
     if (!entry || entry.count === 0) return defaultVal;
-    // Map [-count, +count] to [0, 100] with sigmoid smoothing
+    // Map [-count, +count] to [0, 100] with linear/sigmoid scaling
     const meanUtility = entry.score / entry.count; // in [-1.0, +1.0]
-    // Sigmoid stretching centered at 50
+    // Normalized score centered at 50, spanning [5, 95] based on preference ratio
     const scaled = 50 + meanUtility * 45;
     return Math.round(Math.max(5, Math.min(98, scaled)));
   };
 
-  const cb5tPlasticity = getNormScore('cb5t_plasticity', 65);
+  const cb5tPlasticity = getNormScore('cb5t_plasticity', 50);
   const cb5tStability = getNormScore('cb5t_stability', 50);
-  const hexacoHonestyHumility = getNormScore('hexaco_honesty_humility', 75);
-  const cartAOT = getNormScore('cart_aot', 70);
-  const cognitiveMiserlinessResistance = getNormScore('cart_cognitive_miserliness_resistance', 68);
+  const hexacoHonestyHumility = getNormScore('hexaco_honesty_humility', 50);
+  const cartAOT = getNormScore('cart_aot', 50);
+  const cognitiveMiserlinessResistance = getNormScore('cart_cognitive_miserliness_resistance', 50);
 
-  const monotropismMQScore = getNormScore('monotropism_mq', 78);
-  const bdefsTimeMyopia = getNormScore('bdefs_time_myopia', 72);
-  const bdefsInhibition = getNormScore('bdefs_inhibition', 64);
-  const bdefsActivation = getNormScore('bdefs_activation', 76);
-  const bdefsEmotionalRegulation = 100 - getNormScore('bdefs_inhibition', 40); // inverted for regulation
+  const monotropismMQScore = getNormScore('monotropism_mq', 50);
+  const bdefsTimeMyopia = getNormScore('bdefs_time_myopia', 50);
+  const bdefsInhibition = getNormScore('bdefs_inhibition', 50);
+  const bdefsActivation = getNormScore('bdefs_activation', 50);
+  const bdefsEmotionalRegulation = getNormScore('bdefs_emotional_regulation', 50);
 
-  const catQScore = getNormScore('cat_q_camouflaging', 72);
-  const sensorySensitivity = getNormScore('dunn_sensory_sensitivity', 76);
+  const catQScore = getNormScore('cat_q_camouflaging', 50);
+  const sensorySensitivity = getNormScore('dunn_sensory_sensitivity', 50);
 
   const dabrowski = {
-    intellectual: getNormScore('dabrowski_intellectual', 85),
-    imaginative: getNormScore('dabrowski_imaginative', 78),
-    emotional: getNormScore('dabrowski_emotional', 75),
-    psychomotor: getNormScore('dabrowski_psychomotor', 68),
-    sensual: Math.round((sensorySensitivity + 60) / 2)
+    intellectual: getNormScore('dabrowski_intellectual', 50),
+    imaginative: getNormScore('dabrowski_imaginative', 50),
+    emotional: getNormScore('dabrowski_emotional', 50),
+    psychomotor: getNormScore('dabrowski_psychomotor', 50),
+    sensual: getNormScore('dabrowski_sensual', 50)
   };
 
   // Monotropism profile classification

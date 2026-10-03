@@ -10,8 +10,21 @@ export function generateGeminiProfileXML(report: FullPsychometricReport): string
     <timestamp>${metadata.timestamp}</timestamp>
     <app_version>${metadata.appVersion}</app_version>
     <session_duration_minutes>${metadata.sessionDurationMinutes}</session_duration_minutes>
+    <evaluation_scope>${metadata.evaluationScope || 'FULL'}</evaluation_scope>
     <drasgow_fit_statistic_lz>${metadata.drasgowFitStatisticLz}</drasgow_fit_statistic_lz>
     <testing_integrity_flag>${metadata.testingIntegrityFlag}</testing_integrity_flag>
+    ${
+      metadata.completedModules
+        ? `<completed_modules>
+      <gf_matrices>${Boolean(metadata.completedModules.gfMatrices)}</gf_matrices>
+      <gwm_ospan>${Boolean(metadata.completedModules.gwmOSpan)}</gwm_ospan>
+      <gs_speed>${Boolean(metadata.completedModules.gsSpeed)}</gs_speed>
+      <gc_verbal>${Boolean(metadata.completedModules.gcVerbal)}</gc_verbal>
+      <personality_4a>${Boolean(metadata.completedModules.personality4A)}</personality_4a>
+      <phenotype_4b>${Boolean(metadata.completedModules.phenotype4B)}</phenotype_4b>
+    </completed_modules>`
+        : ''
+    }
   </metadata>
 
   <cognitive_intelligence_chc>
@@ -101,6 +114,7 @@ export function generateBase64Token(report: FullPsychometricReport): string {
     const compactObj = {
       v: '1.0',
       ts: report.metadata.timestamp,
+      scope: report.metadata.evaluationScope || 'FULL',
       gai: report.cognitiveIntelligenceCHC.gai.score,
       cpi: report.cognitiveIntelligenceCHC.cpi.score,
       delta: report.cognitiveIntelligenceCHC.discrepancyDelta,

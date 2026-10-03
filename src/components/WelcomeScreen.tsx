@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export const WelcomeScreen: React.FC = () => {
-  const { setStage } = useSession();
+  const { setStage, setSelectedModuleMode } = useSession();
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 sm:py-14 space-y-12">
@@ -56,18 +56,21 @@ export const WelcomeScreen: React.FC = () => {
             {/* CTA & Quick Links */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
               <button
-                onClick={() => setStage('STAGE_1_GF_MATRICES')}
+                onClick={() => {
+                  setSelectedModuleMode('FULL');
+                  setStage('STAGE_1_GF_MATRICES');
+                }}
                 className="btn-nikko-primary px-8 py-4 text-sm uppercase tracking-wider font-bold shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/35 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
               >
-                <span>Comenzar Evaluación Adaptativa</span>
+                <span>Comenzar Evaluación Integral</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </button>
 
               <a
-                href="#especificaciones"
+                href="#modulos"
                 className="px-6 py-4 rounded-full text-xs font-mono font-medium text-slate-300 hover:text-white border border-white/10 hover:border-white/25 bg-white/5 transition-all text-center"
               >
-                Ver especificaciones ↓
+                Elegir módulo parcial ↓
               </a>
             </div>
 
@@ -164,6 +167,131 @@ export const WelcomeScreen: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Modular Evaluation Mode Selector Section */}
+      <section id="modulos" className="space-y-6 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-white/10 pb-4">
+          <div className="space-y-1">
+            <div className="eyebrow text-emerald-400">// MODALIDADES DISPONIBLES · EVALUACIÓN MODULAR</div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white tracking-tight">
+              Realiza una evaluación completa o por módulos independientes.
+            </h2>
+          </div>
+          <span className="text-xs font-mono text-slate-400">
+            Puedes generar un reporte clínico de cada módulo por separado.
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* Option 1: Full Assessment */}
+          <div className="glass-card p-6 rounded-2xl flex flex-col justify-between border-emerald-500/30 bg-emerald-500/[0.03] hover:border-emerald-500/60 transition-all group shadow-xl">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  RECOMENDADA
+                </span>
+              </div>
+              <h3 className="text-lg font-bold font-display text-white group-hover:text-emerald-300 transition-colors">
+                Evaluación Integral
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                Abarca todo el espectro: Razonamiento Matricial Gf (CAT 3PL), O-Span (Gwm), Discriminación (Gs), Vocabulario (Gc), Discrepancia 2e y las 30 Tríadas Thurstonianas.
+              </p>
+              <div className="pt-2 text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                <span>⏱ ~25–35 min</span>
+                <span>•</span>
+                <span>Todas las baterías</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setSelectedModuleMode('FULL');
+                setStage('STAGE_1_GF_MATRICES');
+              }}
+              className="mt-6 w-full btn-nikko-primary py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/20"
+            >
+              <span>Iniciar Integral</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Option 2: Cognitive Only (CI / CHC) */}
+          <div className="glass-card p-6 rounded-2xl flex flex-col justify-between border-cyan-500/20 hover:border-cyan-500/50 transition-all group shadow-xl">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold">
+                  <Brain className="w-5 h-5" />
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                  MÓDULO CI / CHC
+                </span>
+              </div>
+              <h3 className="text-lg font-bold font-display text-white group-hover:text-cyan-300 transition-colors">
+                Solo Inteligencia Cognitiva
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                Centrado exclusivamente en el perfil psicométrico de habilidades cognitivas: IAG, IEC, Discrepancia 2e, percentiles de CI y capacidades CHC (Gf, Gwm, Gs, Gc).
+              </p>
+              <div className="pt-2 text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                <span>⏱ ~15–18 min</span>
+                <span>•</span>
+                <span>Sin cuestionarios</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setSelectedModuleMode('COGNITIVE_ONLY');
+                setStage('STAGE_1_GF_MATRICES');
+              }}
+              className="mt-6 w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-cyan-500/20 cursor-pointer"
+            >
+              <span>Evaluar Solo CI</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Option 3: Phenotype & Personality Only */}
+          <div className="glass-card p-6 rounded-2xl flex flex-col justify-between border-purple-500/20 hover:border-purple-500/50 transition-all group shadow-xl">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                  MÓDULO FENOTIPO
+                </span>
+              </div>
+              <h3 className="text-lg font-bold font-display text-white group-hover:text-purple-300 transition-colors">
+                Solo Fenotipo & Personalidad
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                30 tríadas forzadas Thurstonianas sin deseabilidad social: Monotropismo (MQ), Barkley (BDEFS), Camuflaje (CAT-Q), Dunn Sensorial, Dabrowski y Personalidad CB5T.
+              </p>
+              <div className="pt-2 text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                <span>⏱ ~8–12 min</span>
+                <span>•</span>
+                <span>Sin pruebas de esfuerzo</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setSelectedModuleMode('PHENOTYPE_ONLY');
+                setStage('STAGE_4A_TRIADS_PERSONALITY');
+              }}
+              className="mt-6 w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/40 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-purple-500/20 cursor-pointer"
+            >
+              <span>Evaluar Solo Fenotipo</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </section>

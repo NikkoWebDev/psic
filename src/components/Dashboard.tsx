@@ -15,11 +15,12 @@ import {
   FileCode,
   Layers,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ArrowRight
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
-  const { fullReport, restartSession } = useSession();
+  const { fullReport, restartSession, setStage, setSelectedModuleMode } = useSession();
   const [copied, setCopied] = useState(false);
   const [showRawXml, setShowRawXml] = useState(false);
   const [showBase64, setShowBase64] = useState(false);
@@ -47,6 +48,10 @@ export const Dashboard: React.FC = () => {
   }
 
   const { metadata, cognitiveIntelligenceCHC: chc, personalityAndPhenotype: pheno, xmlPayload, compactTokenBase64 } = fullReport;
+  const scope = metadata.evaluationScope || 'FULL';
+  const isCognitiveOnly = scope === 'COGNITIVE_ONLY';
+  const isPhenotypeOnly = scope === 'PHENOTYPE_ONLY';
+  const isPartial = scope === 'PARTIAL';
 
   const handleCopyClipboard = async () => {
     try {
@@ -86,19 +91,39 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="pulse-dot" />
             <span className="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/20 font-bold">
-              EVALUACIÓN CONCLUIDA · {metadata.appVersion}
+              {isCognitiveOnly
+                ? 'INFORME PARCIAL: INTELIGENCIA COGNITIVA (CI / CHC)'
+                : isPhenotypeOnly
+                ? 'INFORME PARCIAL: FENOTIPO NEURODIVERGENTE'
+                : isPartial
+                ? 'INFORME PARCIAL EN PROCESO'
+                : `EVALUACIÓN INTEGRAL CONCLUIDA · ${metadata.appVersion}`}
             </span>
           </div>
         </div>
 
         <div className="p-6 sm:p-8 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <span className="eyebrow text-emerald-400">// PERFIL DE ALTO RENDIMIENTO NEURODIVERGENTE</span>
+            <span className="eyebrow text-emerald-400">
+              {isCognitiveOnly
+                ? '// MÓDULO 1 · PSICOMETRÍA COGNITIVA CHC'
+                : isPhenotypeOnly
+                ? '// MÓDULO 2 · FENOTIPO NEURODIVERGENTE'
+                : '// PERFIL DE ALTO RENDIMIENTO NEURODIVERGENTE'}
+            </span>
             <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-white tracking-tight">
-              Perfil Neurocognitivo & Fenotipo Conductual
+              {isCognitiveOnly
+                ? 'Perfil de Inteligencia Cognitiva (IAG vs. IEC)'
+                : isPhenotypeOnly
+                ? 'Perfil de Fenotipo Neurodivergente & Personalidad'
+                : 'Perfil Neurocognitivo & Fenotipo Conductual'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
-              Tu evaluación ha sido calibrada mediante CAT IRT 3PL, O-Span motor y Tríadas Thurstonianas. Listo para sincronización nativa con Gemini Spark.
+              {isCognitiveOnly
+                ? 'Resultados calibrados de Razonamiento Fluido, Memoria de Trabajo, Velocidad y Discrepancia 2e. Listo para sincronización con Gemini Spark.'
+                : isPhenotypeOnly
+                ? 'Resultados calibrados de Monotropismo, Escalas Barkley BDEFS, Camuflaje CAT-Q, Sensorial Dunn y Dabrowski. Listo para Gemini Spark.'
+                : 'Tu evaluación ha sido calibrada mediante CAT IRT 3PL, O-Span motor y Tríadas Thurstonianas. Listo para sincronización nativa con Gemini Spark.'}
             </p>
           </div>
 
@@ -137,6 +162,61 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Partial Evaluation Callout: Invitation to Complete Next Module */}
+      {isCognitiveOnly && (
+        <div className="glass-card rounded-2xl p-6 sm:p-7 border-purple-500/30 bg-purple-500/[0.04] shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+              <span className="eyebrow text-purple-400">// MÓDULO 2 PENDIENTE · FENOTIPO NEURODIVERGENTE</span>
+            </div>
+            <h3 className="text-lg font-bold font-display text-white">
+              ¿Deseas completar la evaluación con el perfil de Fenotipo y Personalidad?
+            </h3>
+            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed font-sans">
+              Has obtenido tu perfil de Inteligencia Cognitiva (IAG vs. IEC). Ahora puedes responder las 30 tríadas forzadas para calibrar tu Monotropismo (MQ), Escalas Barkley (BDEFS), Camuflaje (CAT-Q) y Sensorial Dunn sin sesgos.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setSelectedModuleMode('FULL');
+              setStage('STAGE_4A_TRIADS_PERSONALITY');
+            }}
+            className="shrink-0 px-6 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-purple-500 hover:bg-purple-400 text-slate-950 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-purple-500/25"
+          >
+            <span>Evaluar Fenotipo (Bloque 4A)</span>
+            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        </div>
+      )}
+
+      {isPhenotypeOnly && (
+        <div className="glass-card rounded-2xl p-6 sm:p-7 border-cyan-500/30 bg-cyan-500/[0.04] shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="eyebrow text-cyan-400">// MÓDULO 1 PENDIENTE · PSICOMETRÍA COGNITIVA (CI / CHC)</span>
+            </div>
+            <h3 className="text-lg font-bold font-display text-white">
+              ¿Deseas complementar tu perfil evaluando tu Inteligencia Cognitiva?
+            </h3>
+            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed font-sans">
+              Has obtenido tu diagnóstico de Fenotipo y Personalidad. Puedes realizar las pruebas computarizadas adaptativas (CAT IRT 3PL) para medir tu Razonamiento Fluido (Gf), Memoria de Trabajo (Gwm), Velocidad (Gs) y Discrepancia 2e.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setSelectedModuleMode('FULL');
+              setStage('STAGE_1_GF_MATRICES');
+            }}
+            className="shrink-0 px-6 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/25"
+          >
+            <span>Evaluar CI (Matrices Gf)</span>
+            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        </div>
+      )}
 
       {/* SECTION 1: 2e CLINICAL DISCREPANCY & ABILITY GAUGES */}
       <div className="glass-card rounded-2xl overflow-hidden shadow-2xl">
@@ -181,6 +261,24 @@ export const Dashboard: React.FC = () => {
               </span>
             </div>
           </div>
+
+          {/* Unadministered Cognitive Battery Notice */}
+          {isPhenotypeOnly && (
+            <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-sans">
+              <span>
+                <strong>Módulo cognitivo no evaluado en esta sesión:</strong> Las estimaciones mostradas abajo corresponden a los valores basales predeterminados. Para obtener tus puntuaciones reales de CI, IAG, IEC y Discrepancia 2e, inicia el Módulo 1.
+              </span>
+              <button
+                onClick={() => {
+                  setSelectedModuleMode('FULL');
+                  setStage('STAGE_1_GF_MATRICES');
+                }}
+                className="shrink-0 px-3.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-mono font-bold cursor-pointer"
+              >
+                Iniciar Módulo CI →
+              </button>
+            </div>
+          )}
 
           {/* Clinical Narrative Banner */}
           <div
@@ -351,6 +449,23 @@ export const Dashboard: React.FC = () => {
               Fenotipo Neurodivergente & Monotropismo
             </h3>
           </div>
+
+          {isCognitiveOnly && (
+            <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-sans">
+              <span>
+                <strong>Módulo de fenotipo no administrado:</strong> Las métricas mostradas son neutras basales. Responde las 30 tríadas para calibrar tu Monotropismo y Perfil Sensorial.
+              </span>
+              <button
+                onClick={() => {
+                  setSelectedModuleMode('FULL');
+                  setStage('STAGE_4A_TRIADS_PERSONALITY');
+                }}
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-mono font-bold cursor-pointer"
+              >
+                Completar Tríadas →
+              </button>
+            </div>
+          )}
 
           <div className="space-y-3 text-xs">
             <div className="p-3 rounded-xl bg-[#07090e]/80 border border-white/10 flex justify-between items-center">

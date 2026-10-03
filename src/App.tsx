@@ -13,7 +13,7 @@ import { TriadCard } from './components/TriadCard';
 import { Dashboard } from './components/Dashboard';
 
 const StageRenderer: React.FC = () => {
-  const { currentStage, setStage } = useSession();
+  const { currentStage, setStage, generatePartialReport } = useSession();
 
   switch (currentStage) {
     case 'WELCOME':
@@ -49,14 +49,18 @@ const StageRenderer: React.FC = () => {
           stageTitle="Descompresión de Razonamiento Verbal"
           nextStageName="Tríadas de Personalidad y Racionalidad (Bloque 4A)"
           onContinue={() => setStage('STAGE_4A_TRIADS_PERSONALITY')}
+          secondaryAction={{
+            label: "📊 Ver Análisis Parcial de CI / CHC Ahora",
+            onClick: () => generatePartialReport('COGNITIVE_ONLY')
+          }}
         />
       );
 
     case 'STAGE_4A_TRIADS_PERSONALITY':
-      return <TriadCard block="4A" />;
+      return <TriadCard key="block-4a" block="4A" />;
 
     case 'STAGE_4B_TRIADS_PHENOTYPE':
-      return <TriadCard block="4B" />;
+      return <TriadCard key="block-4b" block="4B" />;
 
     case 'RESULTS_DASHBOARD':
       return <Dashboard />;

@@ -1,30 +1,46 @@
 // Thurstonian IRT Forced-Choice Triad Questionnaire Component
 // Administers 15 triads in Block 4A (Personality/Rationality) and 15 in Block 4B (Neurodivergent Phenotype)
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { TRIADS_POOL } from '../lib/psychometrics/triadsPool';
-import { Sparkles, ArrowRight, ThumbsUp, ThumbsDown, Check } from 'lucide-react';
+import { Sparkles, ArrowRight, ThumbsUp, ThumbsDown, BarChart2 } from 'lucide-react';
 
 interface TriadCardProps {
   block: '4A' | '4B';
 }
 
 export const TriadCard: React.FC<TriadCardProps> = ({ block }) => {
-  const { triadResponses, saveTriadResponse, completeTriadsBlockA, completeTriadsBlockB } = useSession();
+  const {
+    triadResponses,
+    saveTriadResponse,
+    completeTriadsBlockA,
+    completeTriadsBlockB,
+    generatePartialReport
+  } = useSession();
 
   const blockTriads = TRIADS_POOL.filter(t => t.block === block);
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  const currentTriad = blockTriads[currentIdx];
-  const currentSaved = triadResponses[currentTriad.id] || { mostLikeId: '', leastLikeId: '' };
+  const currentTriad = blockTriads[currentIdx] || blockTriads[0];
+  const currentSaved = triadResponses[currentTriad?.id] || { mostLikeId: '', leastLikeId: '' };
 
   const [mostSelected, setMostSelected] = useState<string>(currentSaved.mostLikeId);
   const [leastSelected, setLeastSelected] = useState<string>(currentSaved.leastLikeId);
 
+  // Reset index and selections when switching blocks
+  useEffect(() => {
+    setCurrentIdx(0);
+    const firstTriad = blockTriads[0];
+    if (firstTriad) {
+      const saved = triadResponses[firstTriad.id] || { mostLikeId: '', leastLikeId: '' };
+      setMostSelected(saved.mostLikeId);
+      setLeastSelected(saved.leastLikeId);
+    }
+  }, [block]);
+
   const isBlockA = block === '4A';
 
   const handleSelectMost = (statementId: string) => {
-    // If it was selected as least, unselect least
     if (leastSelected === statementId) {
       setLeastSelected('');
     }
@@ -32,7 +48,6 @@ export const TriadCard: React.FC<TriadCardProps> = ({ block }) => {
   };
 
   const handleSelectLeast = (statementId: string) => {
-    // If it was selected as most, unselect most
     if (mostSelected === statementId) {
       setMostSelected('');
     }
@@ -44,12 +59,22 @@ export const TriadCard: React.FC<TriadCardProps> = ({ block }) => {
   const handleNext = () => {
     if (!canAdvance) return;
 
-    // Save response
+    // Immediately calculate updated responses dictionary to avoid async state lag
+    const updatedResponses = {
+      ...triadResponses,
+      [currentTriad.id]: {
+        triadId: currentTriad.id,
+        mostLikeId: mostSelected,
+        leastLikeId: leastSelected
+      }
+    };
+
+    // Save response in context
     saveTriadResponse(currentTriad.id, mostSelected, leastSelected);
 
     if (currentIdx + 1 < blockTriads.length) {
       const nextTriad = blockTriads[currentIdx + 1];
-      const nextSaved = triadResponses[nextTriad.id] || { mostLikeId: '', leastLikeId: '' };
+      const nextSaved = updatedResponses[nextTriad.id] || { mostLikeId: '', leastLikeId: '' };
       setCurrentIdx(prev => prev + 1);
       setMostSelected(nextSaved.mostLikeId);
       setLeastSelected(nextSaved.leastLikeId);
@@ -58,7 +83,7 @@ export const TriadCard: React.FC<TriadCardProps> = ({ block }) => {
       if (isBlockA) {
         completeTriadsBlockA();
       } else {
-        completeTriadsBlockB();
+        completeTriadsBlockB(updatedResponses);
       }
     }
   };
@@ -155,30 +180,60 @@ export const TriadCard: React.FC<TriadCardProps> = ({ block }) => {
         })}
       </div>
 
-      {/* Advance Button */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-500 font-mono">
-          {!canAdvance && '// Marca 1 afirmación más afín y 1 menos afín para avanzar'}
-        </span>
-
-        <button
-          onClick={handleNext}
-          disabled={!canAdvance}
-          className={`py-3.5 px-6 rounded-xl font-bold text-sm flex items-center gap-2 shadow-xl transition-all ${
-            canAdvance
-              ? 'btn-nikko-primary text-white cursor-pointer'
-              : 'bg-[#0d111a] text-slate-600 border border-white/5 opacity-50 cursor-not-allowed'
-          }`}
-        >
-          <span>
-            {currentIdx + 1 < blockTriads.length
-              ? 'Siguiente Tríada'
-              : isBlockA
-              ? 'Completar Bloque 4A'
-              : 'Generar Reporte Clínico'}
+      {/* Advance Button & Partial Report Option */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <span className="text-xs text-slate-500 font-mono text-center sm:text-left">
+            {!canAdvance ? '// Marca 1 afirmación más afín y 1 menos afín para avanzar' : `// Tríada lista para registrar`}
           </span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
+
+          <button
+            onClick={handleNext}
+            disabled={!canAdvance}
+            className={`w-full sm:w-auto py-3.5 px-6 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-all ${
+              canAdvance
+                ? 'btn-nikko-primary text-white cursor-pointer'
+                : 'bg-[#0d111a] text-slate-600 border border-white/5 opacity-50 cursor-not-allowed'
+            }`}
+          >
+            <span>
+              {currentIdx + 1 < blockTriads.length
+                ? 'Siguiente Tríada'
+                : isBlockA
+                ? 'Completar Bloque 4A'
+                : 'Generar Reporte Completo'}
+            </span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Partial Report Shortcut Button */}
+        {(Object.keys(triadResponses).length > 0 || canAdvance) && (
+          <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
+            <span className="text-[11px] font-mono text-slate-500">
+              {Object.keys(triadResponses).length + (canAdvance && !triadResponses[currentTriad.id] ? 1 : 0)} / 30 tríadas registradas
+            </span>
+            <button
+              onClick={() => {
+                const updated = canAdvance
+                  ? {
+                      ...triadResponses,
+                      [currentTriad.id]: {
+                        triadId: currentTriad.id,
+                        mostLikeId: mostSelected,
+                        leastLikeId: leastSelected
+                      }
+                    }
+                  : triadResponses;
+                generatePartialReport('PHENOTYPE_ONLY', undefined, updated);
+              }}
+              className="text-xs font-mono text-cyan-400 hover:text-cyan-300 underline transition-colors flex items-center gap-1.5"
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              <span>Ver análisis parcial de fenotipo ahora →</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

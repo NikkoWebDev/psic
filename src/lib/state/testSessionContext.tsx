@@ -12,7 +12,8 @@ import {
   TriadResponse,
   PersonalityAndPhenotypeScores,
   FullPsychometricReport,
-  DiscrepancyProfile
+  DiscrepancyProfile,
+  EvaluationScope
 } from '../psychometrics/types';
 import { MATRIX_ITEMS_POOL } from '../psychometrics/matrixItemsPool';
 import { VERBAL_ITEMS_POOL, calculateGcScore } from '../psychometrics/verbalItemsPool';
@@ -54,6 +55,9 @@ interface SessionContextValue {
   // Navigation & stage
   currentStage: AssessmentStage;
   setStage: (stage: AssessmentStage) => void;
+  // Module mode selection
+  selectedModuleMode: 'FULL' | 'COGNITIVE_ONLY' | 'PHENOTYPE_ONLY';
+  setSelectedModuleMode: (mode: 'FULL' | 'COGNITIVE_ONLY' | 'PHENOTYPE_ONLY') => void;
   // Appearance & Accessibility
   theme: AppTheme;
   setTheme: (theme: AppTheme) => void;
@@ -81,9 +85,36 @@ interface SessionContextValue {
   triadResponses: Record<string, TriadResponse>;
   saveTriadResponse: (triadId: string, mostId: string, leastId: string) => void;
   completeTriadsBlockA: () => void;
-  completeTriadsBlockB: () => void;
-  // Final Results
+  completeTriadsBlockB: (finalResponses?: Record<string, TriadResponse>) => void;
+  // Dynamic Phenotype & Personality state values (100% reactive to user responses)
+  monotropismScore: number | null;
+  bdefsScores: {
+    time: number;
+    inhibition: number;
+    activation: number;
+    emotion: number;
+  } | null;
+  catqScore: number | null;
+  maskingBurnoutRisk: 'MILD' | 'MODERATE' | 'SEVERE' | null;
+  sensoryQuadrant: 'SENSORY_SENSITIVITY' | 'SENSATION_AVOIDING' | 'LOW_REGISTRATION' | 'SENSATION_SEEKING' | null;
+  sensoryThreshold: 'LOW' | 'TYPICAL' | 'HIGH' | null;
+  dabrowskiScores: {
+    intellectual: number;
+    imaginative: number;
+    emotional: number;
+    psychomotor: number;
+    sensual: number;
+  } | null;
+  cb5tScores: { plasticity: number; stability: number } | null;
+  hexacoScore: number | null;
+  cartScores: { aot: number; miserliness: number } | null;
+  // Final & Partial Results
   fullReport: FullPsychometricReport | null;
+  generatePartialReport: (
+    scope?: EvaluationScope,
+    currentVerbal?: VerbalResult,
+    currentTriads?: Record<string, TriadResponse>
+  ) => void;
   restartSession: () => void;
 }
 
@@ -94,9 +125,33 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [theme, setTheme] = useState<AppTheme>('dark');
   const [font, setFont] = useState<AppFont>('sans');
 
-  // Stage state
+  // Stage & module state
   const [currentStage, setCurrentStage] = useState<AssessmentStage>('WELCOME');
+  const [selectedModuleMode, setSelectedModuleMode] = useState<'FULL' | 'COGNITIVE_ONLY' | 'PHENOTYPE_ONLY'>('FULL');
   const [sessionStartTime, setSessionStartTime] = useState<number>(() => Date.now());
+
+  // Dynamic scores stored in state (100% reactive)
+  const [monotropismScore, setMonotropismScore] = useState<number | null>(null);
+  const [bdefsScores, setBdefsScores] = useState<{
+    time: number;
+    inhibition: number;
+    activation: number;
+    emotion: number;
+  } | null>(null);
+  const [catqScore, setCatqScore] = useState<number | null>(null);
+  const [maskingBurnoutRisk, setMaskingBurnoutRisk] = useState<'MILD' | 'MODERATE' | 'SEVERE' | null>(null);
+  const [sensoryQuadrant, setSensoryQuadrant] = useState<'SENSORY_SENSITIVITY' | 'SENSATION_AVOIDING' | 'LOW_REGISTRATION' | 'SENSATION_SEEKING' | null>(null);
+  const [sensoryThreshold, setSensoryThreshold] = useState<'LOW' | 'TYPICAL' | 'HIGH' | null>(null);
+  const [dabrowskiScores, setDabrowskiScores] = useState<{
+    intellectual: number;
+    imaginative: number;
+    emotional: number;
+    psychomotor: number;
+    sensual: number;
+  } | null>(null);
+  const [cb5tScores, setCb5tScores] = useState<{ plasticity: number; stability: number } | null>(null);
+  const [hexacoScore, setHexacoScore] = useState<number | null>(null);
+  const [cartScores, setCartScores] = useState<{ aot: number; miserliness: number } | null>(null);
 
   // Stage 1: CAT State
   const [catResponses, setCatResponses] = useState<MatrixResponseRecord[]>([]);
@@ -179,6 +234,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     loadSessionState<any>().then(saved => {
       if (saved && saved.currentStage && saved.currentStage !== 'WELCOME') {
         setCurrentStage(saved.currentStage);
+        if (saved.selectedModuleMode) setSelectedModuleMode(saved.selectedModuleMode);
         if (saved.theme) setTheme(saved.theme);
         if (saved.font) setFont(saved.font);
         if (saved.catResponses) setCatResponses(saved.catResponses);
@@ -190,6 +246,16 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (saved.verbalResult) setVerbalResult(saved.verbalResult);
         if (saved.triadResponses) setTriadResponses(saved.triadResponses);
         if (saved.personalityAndPhenotype) setPersonalityAndPhenotype(saved.personalityAndPhenotype);
+        if (saved.monotropismScore !== undefined) setMonotropismScore(saved.monotropismScore);
+        if (saved.bdefsScores) setBdefsScores(saved.bdefsScores);
+        if (saved.catqScore !== undefined) setCatqScore(saved.catqScore);
+        if (saved.maskingBurnoutRisk) setMaskingBurnoutRisk(saved.maskingBurnoutRisk);
+        if (saved.sensoryQuadrant) setSensoryQuadrant(saved.sensoryQuadrant);
+        if (saved.sensoryThreshold) setSensoryThreshold(saved.sensoryThreshold);
+        if (saved.dabrowskiScores) setDabrowskiScores(saved.dabrowskiScores);
+        if (saved.cb5tScores) setCb5tScores(saved.cb5tScores);
+        if (saved.hexacoScore !== undefined) setHexacoScore(saved.hexacoScore);
+        if (saved.cartScores) setCartScores(saved.cartScores);
         if (saved.fullReport) setFullReport(saved.fullReport);
         if (saved.sessionStartTime) setSessionStartTime(saved.sessionStartTime);
       }
@@ -201,6 +267,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (currentStage !== 'WELCOME') {
       saveSessionState({
         currentStage,
+        selectedModuleMode,
         theme,
         font,
         catResponses,
@@ -212,12 +279,23 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         verbalResult,
         triadResponses,
         personalityAndPhenotype,
+        monotropismScore,
+        bdefsScores,
+        catqScore,
+        maskingBurnoutRisk,
+        sensoryQuadrant,
+        sensoryThreshold,
+        dabrowskiScores,
+        cb5tScores,
+        hexacoScore,
+        cartScores,
         fullReport,
         sessionStartTime
       });
     }
   }, [
     currentStage,
+    selectedModuleMode,
     theme,
     font,
     catResponses,
@@ -229,6 +307,16 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     verbalResult,
     triadResponses,
     personalityAndPhenotype,
+    monotropismScore,
+    bdefsScores,
+    catqScore,
+    maskingBurnoutRisk,
+    sensoryQuadrant,
+    sensoryThreshold,
+    dabrowskiScores,
+    cb5tScores,
+    hexacoScore,
+    cartScores,
     fullReport,
     sessionStartTime
   ]);
@@ -365,30 +453,98 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const completeVerbalStage = () => {
     const result = calculateGcScore(verbalAnswers);
     setVerbalResult(result);
-    setCurrentStage('BREATHER_2');
+    if (selectedModuleMode === 'COGNITIVE_ONLY') {
+      generatePartialReport('COGNITIVE_ONLY', result);
+    } else {
+      setCurrentStage('BREATHER_2');
+    }
   };
 
   // Triads Stage
   const saveTriadResponse = (triadId: string, mostId: string, leastId: string) => {
-    setTriadResponses(prev => ({
-      ...prev,
+    const updated = {
+      ...triadResponses,
       [triadId]: { triadId, mostLikeId: mostId, leastLikeId: leastId }
-    }));
+    };
+    setTriadResponses(updated);
+
+    // Compute dynamic scores in real-time directly from user's responses
+    const currentScores = scoreThurstonianTriads(updated);
+    setPersonalityAndPhenotype(currentScores);
+    setMonotropismScore(currentScores.monotropismMQScore);
+    setBdefsScores({
+      time: currentScores.bdefsTimeMyopia,
+      inhibition: currentScores.bdefsInhibition,
+      activation: currentScores.bdefsActivation,
+      emotion: currentScores.bdefsEmotionalRegulation
+    });
+    setCatqScore(currentScores.catQScore);
+    setMaskingBurnoutRisk(currentScores.maskingBurnoutRisk);
+    setSensoryQuadrant(currentScores.dunnQuadrant);
+    setSensoryThreshold(currentScores.dunnThreshold);
+    setDabrowskiScores(currentScores.dabrowski);
+    setCb5tScores({
+      plasticity: currentScores.cb5tPlasticity,
+      stability: currentScores.cb5tStability
+    });
+    setHexacoScore(currentScores.hexacoHonestyHumility);
+    setCartScores({
+      aot: currentScores.cartAOT,
+      miserliness: currentScores.cognitiveMiserlinessResistance
+    });
   };
 
   const completeTriadsBlockA = () => {
     setCurrentStage('STAGE_4B_TRIADS_PHENOTYPE');
   };
 
-  const completeTriadsBlockB = () => {
-    // Score all 30 triads
-    const scores = scoreThurstonianTriads(triadResponses);
-    setPersonalityAndPhenotype(scores);
+  const completeTriadsBlockB = (finalResponses?: Record<string, TriadResponse>) => {
+    const effectiveResponses = finalResponses || triadResponses;
+    const scope: EvaluationScope =
+      selectedModuleMode === 'PHENOTYPE_ONLY' || catResponses.length === 0
+        ? 'PHENOTYPE_ONLY'
+        : 'FULL';
+    generatePartialReport(scope, undefined, effectiveResponses);
+  };
 
-    // Compute Discrepancy & Build Final Report
+  // Centralized report generator (supports Full or Partial analysis)
+  const generatePartialReport = (
+    requestedScope?: EvaluationScope,
+    currentVerbal?: VerbalResult,
+    currentTriads?: Record<string, TriadResponse>
+  ) => {
+    const effectiveTriads = currentTriads || triadResponses;
+    const effectiveVerbal = currentVerbal || verbalResult || (Object.keys(verbalAnswers).length > 0 ? calculateGcScore(verbalAnswers) : null);
+
+    // Compute dynamic personality and phenotype scores from actual responses
+    const scores = scoreThurstonianTriads(effectiveTriads);
+    setPersonalityAndPhenotype(scores);
+    setMonotropismScore(scores.monotropismMQScore);
+    setBdefsScores({
+      time: scores.bdefsTimeMyopia,
+      inhibition: scores.bdefsInhibition,
+      activation: scores.bdefsActivation,
+      emotion: scores.bdefsEmotionalRegulation
+    });
+    setCatqScore(scores.catQScore);
+    setMaskingBurnoutRisk(scores.maskingBurnoutRisk);
+    setSensoryQuadrant(scores.dunnQuadrant);
+    setSensoryThreshold(scores.dunnThreshold);
+    setDabrowskiScores(scores.dabrowski);
+    setCb5tScores({
+      plasticity: scores.cb5tPlasticity,
+      stability: scores.cb5tStability
+    });
+    setHexacoScore(scores.hexacoHonestyHumility);
+    setCartScores({
+      aot: scores.cartAOT,
+      miserliness: scores.cognitiveMiserlinessResistance
+    });
+
+    // Compute CHC Discrepancy Profile
     const thetaGf = catState.thetaEAP;
     const semThetaGf = catState.semTheta;
-    const thetaGc = verbalResult ? verbalResult.thetaGc : 0.8;
+    const thetaGc = effectiveVerbal ? effectiveVerbal.thetaGc : 0.0;
     const thetaGwm = oSpanFinalScore ? oSpanFinalScore.thetaGwm : 0.0;
     const thetaGs = symbolMatchFinal ? symbolMatchFinal.thetaGs : 0.0;
 
@@ -402,13 +558,38 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const elapsedMinutes = Number(((Date.now() - sessionStartTime) / (1000 * 60)).toFixed(1));
 
+    const hasCognitiveData = catResponses.length > 0 || Boolean(oSpanFinalScore) || Boolean(symbolMatchFinal) || Boolean(effectiveVerbal);
+    const hasPhenotypeData = Object.keys(effectiveTriads).length > 0;
+
+    let resolvedScope: EvaluationScope = requestedScope || selectedModuleMode;
+    if (!requestedScope) {
+      if (hasCognitiveData && hasPhenotypeData) {
+        resolvedScope = 'FULL';
+      } else if (hasCognitiveData && !hasPhenotypeData) {
+        resolvedScope = 'COGNITIVE_ONLY';
+      } else if (!hasCognitiveData && hasPhenotypeData) {
+        resolvedScope = 'PHENOTYPE_ONLY';
+      } else {
+        resolvedScope = 'PARTIAL';
+      }
+    }
+
     const finalReportData: FullPsychometricReport = {
       metadata: {
         timestamp: new Date().toISOString(),
         appVersion: 'NEUROSYNAPSE_v1.0',
-        sessionDurationMinutes: Math.max(12, elapsedMinutes),
+        sessionDurationMinutes: Math.max(2, elapsedMinutes),
         drasgowFitStatisticLz: catState.drasgowLz,
-        testingIntegrityFlag: catState.anomaliesDetected > 1 ? 'PROVISIONAL_ATTENTION_SLIPS' : 'VALID'
+        testingIntegrityFlag: catState.anomaliesDetected > 1 ? 'PROVISIONAL_ATTENTION_SLIPS' : 'VALID',
+        evaluationScope: resolvedScope,
+        completedModules: {
+          gfMatrices: catResponses.length > 0,
+          gwmOSpan: Boolean(oSpanFinalScore),
+          gsSpeed: Boolean(symbolMatchFinal),
+          gcVerbal: Boolean(effectiveVerbal),
+          personality4A: Object.keys(effectiveTriads).some(k => k.startsWith('triad_4a')),
+          phenotype4B: Object.keys(effectiveTriads).some(k => k.startsWith('triad_4b'))
+        }
       },
       cognitiveIntelligenceCHC: discrepancy,
       personalityAndPhenotype: scores,
@@ -446,6 +627,17 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setVerbalResult(null);
     setTriadResponses({});
     setPersonalityAndPhenotype(null);
+    setMonotropismScore(null);
+    setBdefsScores(null);
+    setCatqScore(null);
+    setMaskingBurnoutRisk(null);
+    setSensoryQuadrant(null);
+    setSensoryThreshold(null);
+    setDabrowskiScores(null);
+    setCb5tScores(null);
+    setHexacoScore(null);
+    setCartScores(null);
+    setSelectedModuleMode('FULL');
     setFullReport(null);
     setSessionStartTime(Date.now());
     setCurrentStage('WELCOME');
@@ -454,6 +646,8 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const value: SessionContextValue = {
     currentStage,
     setStage: setCurrentStage,
+    selectedModuleMode,
+    setSelectedModuleMode,
     theme,
     setTheme,
     font,
@@ -476,7 +670,18 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     saveTriadResponse,
     completeTriadsBlockA,
     completeTriadsBlockB,
+    monotropismScore,
+    bdefsScores,
+    catqScore,
+    maskingBurnoutRisk,
+    sensoryQuadrant,
+    sensoryThreshold,
+    dabrowskiScores,
+    cb5tScores,
+    hexacoScore,
+    cartScores,
     fullReport,
+    generatePartialReport,
     restartSession
   };
 
