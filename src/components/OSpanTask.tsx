@@ -114,6 +114,35 @@ export const OSpanTask: React.FC = () => {
     return () => clearTimeout(timer);
   }, [subState, currentStepIdx, currentRound]);
 
+  // Keyboard shortcut listener for OSpan (Math & Recall)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (sessionPhase !== 'PRACTICE' && sessionPhase !== 'SCORED') return;
+
+      if (subState === 'MATH') {
+        const k = e.key.toLowerCase();
+        if (k === 'v' || k === '1' || k === 't') {
+          handleMathChoice(true);
+        } else if (k === 'f' || k === '2' || k === 'n') {
+          handleMathChoice(false);
+        }
+      } else if (subState === 'RECALL') {
+        const char = e.key.toUpperCase();
+        if (CANDIDATE_LETTERS.includes(char)) {
+          handleLetterSelect(char);
+        } else if (e.key === 'Backspace') {
+          handleBackspaceLetter();
+        } else if (e.key === 'Enter' && recalledLetters.length === currentRound.spanLength) {
+          handleSubmitRecall();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [subState, sessionPhase, currentStep, recalledLetters, currentRound]);
+
+
   const handleMathChoice = (isTrue: boolean) => {
     if (!currentStep) return;
     const isCorrect = isTrue === currentStep.isEquationCorrect;

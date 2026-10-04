@@ -407,37 +407,103 @@ export const Dashboard: React.FC = () => {
 
       {/* SECTION 2: RADAR & BROAD ABILITIES CHC PROFILE */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* CHC Latent Thetas */}
+        {/* CHC Latent Thetas with SVG Radar */}
         <div className="glass-card rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center gap-2.5">
-            <Zap className="w-5 h-5 text-emerald-400" />
-            <h3 className="font-bold text-white text-sm uppercase font-mono">
-              Habilidades Cognitivas CHC (θ Latente)
-            </h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Zap className="w-5 h-5 text-emerald-400" />
+              <h3 className="font-bold text-white text-sm uppercase font-mono">
+                Habilidades Cognitivas CHC (θ Latente)
+              </h3>
+            </div>
+            <span className="nikko-tag">RADAR CHC</span>
           </div>
 
-          <div className="space-y-3">
-            {[
-              { name: 'Razonamiento Fluido (Gf)', theta: chc.broadAbilitiesTheta.gf, color: 'bg-emerald-400' },
-              { name: 'Comprensión Cristalizada (Gc)', theta: chc.broadAbilitiesTheta.gc, color: 'bg-purple-400' },
-              { name: 'Memoria de Trabajo (Gwm)', theta: chc.broadAbilitiesTheta.gwm, color: 'bg-cyan-400' },
-              { name: 'Velocidad de Procesamiento (Gs)', theta: chc.broadAbilitiesTheta.gs, color: 'bg-amber-400' }
-            ].map(item => (
-              <div key={item.name} className="p-3 rounded-xl bg-[#07090e]/80 border border-white/10">
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-slate-300 font-medium">{item.name}</span>
-                  <span className="font-mono font-bold text-white">
-                    {item.theta >= 0 ? `+${item.theta}` : item.theta} DE
-                  </span>
+          {/* SVG Polygonal Radar Chart */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 py-2">
+            <div className="relative w-48 h-48 shrink-0">
+              <svg viewBox="0 0 200 200" className="w-full h-full overflow-visible">
+                {/* Background Concentric Grid Diamonds */}
+                {[0.25, 0.5, 0.75, 1.0].map((level, i) => {
+                  const r = level * 65;
+                  return (
+                    <polygon
+                      key={`grid-${i}`}
+                      points={`100,${100 - r} ${100 + r},100 100,${100 + r} ${100 - r},100`}
+                      fill={level === 0.5 ? 'rgba(52, 211, 153, 0.03)' : 'none'}
+                      stroke={level === 0.5 ? 'rgba(52, 211, 153, 0.35)' : 'rgba(255, 255, 255, 0.08)'}
+                      strokeWidth={level === 0.5 ? '1.5' : '1'}
+                      strokeDasharray={level === 0.5 ? '3 3' : 'none'}
+                    />
+                  );
+                })}
+
+                {/* Axes lines */}
+                <line x1="100" y1="35" x2="100" y2="165" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
+                <line x1="35" y1="100" x2="165" y2="100" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
+
+                {/* Axis Labels */}
+                <text x="100" y="26" textAnchor="middle" className="text-[9px] font-mono fill-emerald-400 font-bold">Gf (Fluido)</text>
+                <text x="175" y="103" textAnchor="start" className="text-[9px] font-mono fill-purple-400 font-bold">Gc (Verbal)</text>
+                <text x="100" y="180" textAnchor="middle" className="text-[9px] font-mono fill-amber-400 font-bold">Gs (Velocidad)</text>
+                <text x="25" y="103" textAnchor="end" className="text-[9px] font-mono fill-cyan-400 font-bold">Gwm (Memoria)</text>
+
+                {/* Population Mean Reference (0 DE) */}
+                <circle cx="100" cy="100" r="1.5" fill="rgba(255,255,255,0.5)" />
+
+                {/* User's Computed Ability Polygon */}
+                {(() => {
+                  const norm = (th: number) => Math.min(1, Math.max(0.12, (th + 2.5) / 5));
+                  const rGf = norm(chc.broadAbilitiesTheta.gf) * 65;
+                  const rGc = norm(chc.broadAbilitiesTheta.gc) * 65;
+                  const rGs = norm(chc.broadAbilitiesTheta.gs) * 65;
+                  const rGwm = norm(chc.broadAbilitiesTheta.gwm) * 65;
+                  const pts = `100,${100 - rGf} ${100 + rGc},100 100,${100 + rGs} ${100 - rGwm},100`;
+
+                  return (
+                    <g>
+                      <polygon
+                        points={pts}
+                        fill="rgba(52, 211, 153, 0.25)"
+                        stroke="#34d399"
+                        strokeWidth="2"
+                        className="transition-all duration-700"
+                        style={{ filter: 'drop-shadow(0 0 8px rgba(52, 211, 153, 0.4))' }}
+                      />
+                      {/* Vertex Dots */}
+                      <circle cx="100" cy={100 - rGf} r="3.5" fill="#34d399" />
+                      <circle cx={100 + rGc} cy="100" r="3.5" fill="#c084fc" />
+                      <circle cx="100" cy={100 + rGs} r="3.5" fill="#fbbf24" />
+                      <circle cx={100 - rGwm} cy="100" r="3.5" fill="#38bdf8" />
+                    </g>
+                  );
+                })()}
+              </svg>
+            </div>
+
+            <div className="flex-1 space-y-2.5 w-full">
+              {[
+                { name: 'Razonamiento Fluido (Gf)', theta: chc.broadAbilitiesTheta.gf, color: 'bg-emerald-400', label: 'CAT 3PL' },
+                { name: 'Comprensión Cristalizada (Gc)', theta: chc.broadAbilitiesTheta.gc, color: 'bg-purple-400', label: 'Relacional' },
+                { name: 'Memoria de Trabajo (Gwm)', theta: chc.broadAbilitiesTheta.gwm, color: 'bg-cyan-400', label: 'O-Span' },
+                { name: 'Velocidad de Procesamiento (Gs)', theta: chc.broadAbilitiesTheta.gs, color: 'bg-amber-400', label: 'Sub-ms' }
+              ].map(item => (
+                <div key={item.name} className="p-2.5 rounded-xl bg-[#07090e]/80 border border-white/10">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-slate-300 font-medium text-[11px]">{item.name}</span>
+                    <span className="font-mono font-bold text-white text-[11px]">
+                      {item.theta >= 0 ? `+${item.theta}` : item.theta} DE
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#0d111a] border border-white/10 h-1.5 rounded-full overflow-hidden p-[1px]">
+                    <div
+                      className={`${item.color} h-full rounded-full transition-all duration-500`}
+                      style={{ width: `${Math.min(100, Math.max(5, ((item.theta + 3) / 6) * 100))}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-[#0d111a] border border-white/10 h-1.5 rounded-full overflow-hidden p-[1px]">
-                  <div
-                    className={`${item.color} h-full rounded-full`}
-                    style={{ width: `${Math.min(100, Math.max(5, ((item.theta + 3) / 6) * 100))}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
@@ -643,19 +709,74 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Footer Restart */}
-      <div className="text-center pt-4">
-        <button
-          onClick={() => {
-            if (window.confirm('¿Deseas reiniciar la evaluación? Se iniciará una nueva sesión desde el principio.')) {
-              restartSession();
-            }
-          }}
-          className="text-xs font-mono text-slate-500 hover:text-emerald-400 transition-colors underline"
-        >
-          // Reiniciar evaluación y comenzar una nueva sesión
-        </button>
+      {/* Footer Restart & NikkoDev Signature */}
+      <div className="pt-6 pb-4 space-y-6">
+        <div className="text-center">
+          <button
+            onClick={() => {
+              if (window.confirm('¿Deseas reiniciar la evaluación? Se iniciará una nueva sesión desde el principio.')) {
+                restartSession();
+              }
+            }}
+            className="text-xs font-mono text-slate-500 hover:text-emerald-400 transition-colors underline cursor-pointer"
+          >
+            // Reiniciar evaluación y comenzar una nueva sesión
+          </button>
+        </div>
+
+        {/* NikkoDev Author Signature */}
+        <footer className="glass-card p-6 sm:p-8 rounded-2xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-400">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center font-mono font-black text-emerald-400 text-sm">
+              N
+            </div>
+            <div>
+              <div className="font-bold text-white font-display flex items-center gap-2">
+                <span>NikkoDev</span>
+                <span className="text-slate-600">/</span>
+                <span className="text-emerald-400 font-mono text-[11px]">psic.nikko.dev</span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Desarrollado por Brayan Nikolas Gallo León · Full-Stack & Applied AI Engineer
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 font-mono text-[11px]">
+            <a
+              href="https://nikko.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-300 hover:text-emerald-400 transition-colors flex items-center gap-1"
+            >
+              <span>nikko.dev ↗</span>
+            </a>
+            <span className="text-slate-700">·</span>
+            <a
+              href="https://github.com/NikkoWebDev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-300 hover:text-emerald-400 transition-colors flex items-center gap-1"
+            >
+              <span>GitHub ↗</span>
+            </a>
+            <span className="text-slate-700">·</span>
+            <a
+              href="https://wa.me/573136638097"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-400 hover:underline flex items-center gap-1 font-bold"
+            >
+              <span>WhatsApp ↗</span>
+            </a>
+            <span className="text-slate-700">·</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-400 text-[10px]">
+              v1.4.0 · CHC CAT-3PL
+            </span>
+          </div>
+        </footer>
       </div>
     </div>
   );
 };
+

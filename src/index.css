@@ -325,3 +325,53 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #34d39988;
 }
+
+/* Infinite Marquee Ticker (Awwwards / nikko.dev) */
+.marquee-container {
+  overflow: hidden;
+  user-select: none;
+  display: flex;
+  gap: 1.5rem;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.marquee-content {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-around;
+  min-width: 100%;
+  gap: 1.5rem;
+  animation: scrollMarquee 30s linear infinite;
+}
+
+.marquee-container:hover .marquee-content {
+  animation-play-state: paused;
+}
+
+@keyframes scrollMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - 1.5rem));
+  }
+}
+
+/* 3D Perspective Card Container */
+.perspective-container {
+  perspective: 1000px;
+}
+
+.tilt-element {
+  transition: transform 0.15s ease-out;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Interactive Glow Accent Border */
+.glow-card-active {
+  border-color: rgba(52, 211, 153, 0.45);
+  box-shadow: 0 0 30px rgba(52, 211, 153, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+

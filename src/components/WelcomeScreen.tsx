@@ -84,9 +84,21 @@ export const WelcomeScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Hero Right: nikko.dev OS Terminal */}
-          <div className="lg:col-span-5">
-            <div className="os-terminal">
+          {/* Hero Right: nikko.dev OS Terminal with 3D Tilt */}
+          <div className="lg:col-span-5 perspective-container">
+            <div
+              id="heroTerminal"
+              className="os-terminal tilt-element shadow-2xl"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                e.currentTarget.style.transform = `perspective(900px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-4px)`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'perspective(900px) rotateY(0deg) rotateX(0deg) translateY(0px)';
+              }}
+            >
               {/* Terminal Titlebar with macOS dots */}
               <div className="os-titlebar justify-between">
                 <div className="flex items-center gap-3">
@@ -167,6 +179,34 @@ export const WelcomeScreen: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Infinite Marquee of Scientific Badges (Awwwards / nikko.dev) */}
+      <section className="py-2 overflow-hidden border-y border-white/5 bg-white/[0.01]">
+        <div className="marquee-container">
+          <div className="marquee-content font-mono text-xs text-slate-400">
+            <span className="flex items-center gap-2"><span className="text-emerald-400">◆</span> CAT IRT 3PL Adaptive Engine</span>
+            <span className="flex items-center gap-2"><span className="text-sky-400">◆</span> Complex Operation Span (O-Span)</span>
+            <span className="flex items-center gap-2"><span className="text-purple-400">◆</span> NAGC / Pearson 2e Discrepancy √(2+2r)</span>
+            <span className="flex items-center gap-2"><span className="text-amber-400">◆</span> Thurstonian Forced-Choice Triads</span>
+            <span className="flex items-center gap-2"><span className="text-emerald-400">◆</span> Monotropism (MQ) Assessment</span>
+            <span className="flex items-center gap-2"><span className="text-sky-400">◆</span> Barkley Executive Dysfunction (BDEFS)</span>
+            <span className="flex items-center gap-2"><span className="text-purple-400">◆</span> Camouflaging Autistic Traits (CAT-Q)</span>
+            <span className="flex items-center gap-2"><span className="text-amber-400">◆</span> Dunn Sensory Processing Framework</span>
+            <span className="flex items-center gap-2"><span className="text-emerald-400">◆</span> Cybernetic Big Five Theory (CB5T)</span>
+          </div>
+          <div className="marquee-content font-mono text-xs text-slate-400" aria-hidden="true">
+            <span className="flex items-center gap-2"><span className="text-emerald-400">◆</span> CAT IRT 3PL Adaptive Engine</span>
+            <span className="flex items-center gap-2"><span className="text-sky-400">◆</span> Complex Operation Span (O-Span)</span>
+            <span className="flex items-center gap-2"><span className="text-purple-400">◆</span> NAGC / Pearson 2e Discrepancy √(2+2r)</span>
+            <span className="flex items-center gap-2"><span className="text-amber-400">◆</span> Thurstonian Forced-Choice Triads</span>
+            <span className="flex items-center gap-2"><span className="text-emerald-400">◆</span> Monotropism (MQ) Assessment</span>
+            <span className="flex items-center gap-2"><span className="text-sky-400">◆</span> Barkley Executive Dysfunction (BDEFS)</span>
+            <span className="flex items-center gap-2"><span className="text-purple-400">◆</span> Camouflaging Autistic Traits (CAT-Q)</span>
+            <span className="flex items-center gap-2"><span className="text-amber-400">◆</span> Dunn Sensory Processing Framework</span>
+            <span className="flex items-center gap-2"><span className="text-emerald-400">◆</span> Cybernetic Big Five Theory (CB5T)</span>
           </div>
         </div>
       </section>
@@ -414,19 +454,74 @@ export const WelcomeScreen: React.FC = () => {
         </div>
       </section>
 
-      {/* Bottom CTA */}
-      <div className="text-center pt-4 pb-2">
-        <button
-          onClick={() => setStage('STAGE_1_GF_MATRICES')}
-          className="btn-nikko-primary min-w-[280px] sm:min-w-[340px] py-4 px-8 text-base font-bold shadow-2xl shadow-emerald-500/25 cursor-pointer"
-        >
-          <span>Iniciar Evaluación Adaptativa</span>
-          <ArrowRight className="w-5 h-5 stroke-[2.5]" />
-        </button>
-        <div className="text-xs font-mono text-slate-500 mt-3">
-          psic.nikko.dev · Desarrollado por NikkoDev
+      {/* Bottom CTA & Author Footer */}
+      <section className="pt-6 pb-4 space-y-8">
+        <div className="text-center">
+          <button
+            onClick={() => {
+              setSelectedModuleMode('FULL');
+              setStage('STAGE_1_GF_MATRICES');
+            }}
+            className="btn-nikko-primary min-w-[280px] sm:min-w-[340px] py-4 px-8 text-base font-bold shadow-2xl shadow-emerald-500/25 cursor-pointer"
+          >
+            <span>Iniciar Evaluación Adaptativa</span>
+            <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+          </button>
         </div>
-      </div>
+
+        {/* NikkoDev Author & System Signature */}
+        <footer className="glass-card p-6 sm:p-8 rounded-2xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-400">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center font-mono font-black text-emerald-400 text-sm">
+              N
+            </div>
+            <div>
+              <div className="font-bold text-white font-display flex items-center gap-2">
+                <span>NikkoDev</span>
+                <span className="text-slate-600">/</span>
+                <span className="text-emerald-400 font-mono text-[11px]">psic.nikko.dev</span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Desarrollado por Brayan Nikolas Gallo León · Full-Stack & Applied AI Engineer
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 font-mono text-[11px]">
+            <a
+              href="https://nikko.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-300 hover:text-emerald-400 transition-colors flex items-center gap-1"
+            >
+              <span>nikko.dev ↗</span>
+            </a>
+            <span className="text-slate-700">·</span>
+            <a
+              href="https://github.com/NikkoWebDev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-300 hover:text-emerald-400 transition-colors flex items-center gap-1"
+            >
+              <span>GitHub ↗</span>
+            </a>
+            <span className="text-slate-700">·</span>
+            <a
+              href="https://wa.me/573136638097"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-400 hover:underline flex items-center gap-1 font-bold"
+            >
+              <span>WhatsApp ↗</span>
+            </a>
+            <span className="text-slate-700">·</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-400 text-[10px]">
+              v1.4.0 · CHC CAT-3PL
+            </span>
+          </div>
+        </footer>
+      </section>
     </div>
   );
 };
+

@@ -23,6 +23,23 @@ export const VerbalTask: React.FC = () => {
     }
   };
 
+  // Keyboard shortcut listener
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (k === '1' || k === 'a') handleSelectOption(0);
+      else if (k === '2' || k === 'b') handleSelectOption(1);
+      else if (k === '3' || k === 'c') handleSelectOption(2);
+      else if (k === '4' || k === 'd') handleSelectOption(3);
+      else if (e.key === 'Enter' && selectedOption !== undefined) {
+        handleNext();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIdx, selectedOption]);
+
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       {/* Header Info */}

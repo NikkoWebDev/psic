@@ -14,6 +14,19 @@ export const MatrixViewer: React.FC = () => {
 
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
+  // Keyboard shortcut listener for options 1-8
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isProcessingItem) return;
+      const keyNum = parseInt(e.key, 10);
+      if (keyNum >= 1 && keyNum <= 8) {
+        handleSelect(keyNum - 1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isProcessingItem, catCurrentItem]);
+
   if (!catCurrentItem) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6 space-y-4">
@@ -96,7 +109,12 @@ export const MatrixViewer: React.FC = () => {
 
       {/* Instruction Prompt */}
       <div className="w-full max-w-2xl text-center space-y-1">
-        <div className="eyebrow">// opciones de respuesta</div>
+        <div className="flex items-center justify-center gap-2">
+          <span className="eyebrow">// opciones de respuesta</span>
+          <span className="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-mono bg-white/5 border border-white/10 text-slate-400">
+            [Atajo: teclas 1 - 8]
+          </span>
+        </div>
         <p className="text-xs sm:text-sm text-slate-300 font-medium">
           Selecciona la opción que completa lógicamente la matriz:
         </p>

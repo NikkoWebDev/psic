@@ -69,6 +69,26 @@ export const SymbolMatchTask: React.FC = () => {
     pointerDownTimeRef.current = performance.now();
   };
 
+  // Keyboard shortcut support (S/ArrowLeft/1 = SÍ, N/ArrowRight/2 = NO)
+  useEffect(() => {
+    if (phase !== 'RUNNING') return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (k === 's' || k === 'arrowleft' || k === '1' || k === 'y') {
+        pointerDownTimeRef.current = performance.now();
+        setTimeout(() => handlePointerUp(true), 20);
+      } else if (k === 'n' || k === 'arrowright' || k === '2') {
+        pointerDownTimeRef.current = performance.now();
+        setTimeout(() => handlePointerUp(false), 20);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [phase, currentTrialData]);
+
+
   const handlePointerUp = (choice: boolean) => {
     if (phase !== 'RUNNING') return;
 
@@ -291,19 +311,25 @@ export const SymbolMatchTask: React.FC = () => {
             <button
               onPointerDown={() => handlePointerDown(true)}
               onPointerUp={() => handlePointerUp(true)}
-              className="py-4 rounded-xl font-bold bg-emerald-500/15 hover:bg-emerald-500/25 active:bg-emerald-500/35 border border-emerald-500/50 text-emerald-300 text-lg shadow-[0_0_20px_rgba(52,211,153,0.15)] transition-all active:scale-95 flex items-center justify-center gap-2 select-none"
+              className="py-4 rounded-xl font-bold bg-emerald-500/15 hover:bg-emerald-500/25 active:bg-emerald-500/35 border border-emerald-500/50 text-emerald-300 text-lg shadow-[0_0_20px_rgba(52,211,153,0.15)] transition-all active:scale-95 flex flex-col items-center justify-center gap-1 select-none cursor-pointer"
             >
-              <Check className="w-5 h-5 stroke-[3]" />
-              <span className="tracking-wide">SÍ</span>
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 stroke-[3]" />
+                <span className="tracking-wide">SÍ</span>
+              </div>
+              <span className="text-[10px] font-mono text-emerald-400/70">[Tecla S / ←]</span>
             </button>
 
             <button
               onPointerDown={() => handlePointerDown(false)}
               onPointerUp={() => handlePointerUp(false)}
-              className="py-4 rounded-xl font-bold bg-rose-500/15 hover:bg-rose-500/25 active:bg-rose-500/35 border border-rose-500/50 text-rose-300 text-lg shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all active:scale-95 flex items-center justify-center gap-2 select-none"
+              className="py-4 rounded-xl font-bold bg-rose-500/15 hover:bg-rose-500/25 active:bg-rose-500/35 border border-rose-500/50 text-rose-300 text-lg shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all active:scale-95 flex flex-col items-center justify-center gap-1 select-none cursor-pointer"
             >
-              <X className="w-5 h-5 stroke-[3]" />
-              <span className="tracking-wide">NO</span>
+              <div className="flex items-center gap-2">
+                <X className="w-5 h-5 stroke-[3]" />
+                <span className="tracking-wide">NO</span>
+              </div>
+              <span className="text-[10px] font-mono text-rose-400/70">[Tecla N / →]</span>
             </button>
           </div>
         </div>
