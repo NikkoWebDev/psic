@@ -12,6 +12,7 @@ import {
   Activity,
   CheckCircle2
 } from 'lucide-react';
+import { FaqSection } from './FaqSection';
 
 export const WelcomeScreen: React.FC = () => {
   const { setStage, setSelectedModuleMode } = useSession();
@@ -453,6 +454,9 @@ export const WelcomeScreen: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Clinical & Scientific FAQ Section */}
+      <FaqSection />
 
       {/* Bottom CTA & Author Footer */}
       <section className="pt-6 pb-4 space-y-8">

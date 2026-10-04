@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { SymbolTrialRecord, SymbolSpeedResult } from '../lib/psychometrics/types';
 import { Zap, Check, X, ArrowRight, Play } from 'lucide-react';
+import { sound } from '../lib/audio/soundEngine';
 
 const SYMBOL_SET = ['⬡', '◇', '△', '○', '□', '▽', '✦', '⬢', '⊕', '⊗', '⊛', '⊘'];
 
@@ -91,6 +92,7 @@ export const SymbolMatchTask: React.FC = () => {
 
   const handlePointerUp = (choice: boolean) => {
     if (phase !== 'RUNNING') return;
+    sound.playSpeedTick();
 
     const pointerUpTime = performance.now();
     const decisionTimeMs = Number((pointerDownTimeRef.current - trialStartTimeRef.current).toFixed(1));

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { TRIADS_POOL } from '../lib/psychometrics/triadsPool';
 import { Sparkles, ArrowRight, ThumbsUp, ThumbsDown, BarChart2 } from 'lucide-react';
+import { sound } from '../lib/audio/soundEngine';
 
 interface TriadCardProps {
   block: '4A' | '4B';
@@ -41,6 +42,7 @@ export const TriadCard: React.FC<TriadCardProps> = ({ block }) => {
   const isBlockA = block === '4A';
 
   const handleSelectMost = (statementId: string) => {
+    sound.playSoftClick();
     if (leastSelected === statementId) {
       setLeastSelected('');
     }
@@ -48,6 +50,7 @@ export const TriadCard: React.FC<TriadCardProps> = ({ block }) => {
   };
 
   const handleSelectLeast = (statementId: string) => {
+    sound.playSoftClick();
     if (mostSelected === statementId) {
       setMostSelected('');
     }
@@ -73,12 +76,14 @@ export const TriadCard: React.FC<TriadCardProps> = ({ block }) => {
     saveTriadResponse(currentTriad.id, mostSelected, leastSelected);
 
     if (currentIdx + 1 < blockTriads.length) {
+      sound.playTransitionTone();
       const nextTriad = blockTriads[currentIdx + 1];
       const nextSaved = updatedResponses[nextTriad.id] || { mostLikeId: '', leastLikeId: '' };
       setCurrentIdx(prev => prev + 1);
       setMostSelected(nextSaved.mostLikeId);
       setLeastSelected(nextSaved.leastLikeId);
     } else {
+      sound.playSuccessChime();
       // Completed block
       if (isBlockA) {
         completeTriadsBlockA();

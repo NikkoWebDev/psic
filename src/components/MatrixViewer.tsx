@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { matrixSvgLib } from '../lib/psychometrics/matrixItemsPool';
 import { Brain, HelpCircle, Activity } from 'lucide-react';
+import { sound } from '../lib/audio/soundEngine';
 
 export const MatrixViewer: React.FC = () => {
   const {
@@ -41,6 +42,7 @@ export const MatrixViewer: React.FC = () => {
 
   const handleSelect = (idx: number) => {
     if (isProcessingItem) return;
+    sound.playSoftClick();
     setSelectedOption(idx);
     submitMatrixResponse(idx);
     setSelectedOption(null);

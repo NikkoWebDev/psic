@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { OSpanRound, OSpanFinalScore, OSpanRoundResult } from '../lib/psychometrics/types';
 import { Check, X, RotateCcw, ArrowRight, ShieldAlert, Award, Layers } from 'lucide-react';
+import { sound } from '../lib/audio/soundEngine';
 
 const CANDIDATE_LETTERS = ['F', 'H', 'J', 'K', 'L', 'N', 'P', 'Q', 'R', 'S', 'T', 'Y'];
 
@@ -145,6 +146,7 @@ export const OSpanTask: React.FC = () => {
 
   const handleMathChoice = (isTrue: boolean) => {
     if (!currentStep) return;
+    sound.playSoftClick();
     const isCorrect = isTrue === currentStep.isEquationCorrect;
     setMathAnswers(prev => [...prev, isCorrect]);
     setSubState('LETTER');
@@ -152,15 +154,18 @@ export const OSpanTask: React.FC = () => {
 
   const handleLetterSelect = (letter: string) => {
     if (recalledLetters.length < currentRound.spanLength) {
+      sound.playSoftClick();
       setRecalledLetters(prev => [...prev, letter]);
     }
   };
 
   const handleBackspaceLetter = () => {
+    sound.playSoftClick();
     setRecalledLetters(prev => prev.slice(0, -1));
   };
 
   const handleSubmitRecall = () => {
+    sound.playTransitionTone();
     const targetLetters = currentRound.steps.map((s: { letter: string }) => s.letter);
     let correctCount = 0;
     for (let i = 0; i < targetLetters.length; i++) {

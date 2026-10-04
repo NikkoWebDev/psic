@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
-import { Sun, Moon, Eye, Type, RotateCcw, BarChart2, ChevronDown, Brain, Layers, Sparkles } from 'lucide-react';
+import { sound } from '../lib/audio/soundEngine';
+import { Sun, Moon, Eye, Type, RotateCcw, BarChart2, ChevronDown, Brain, Layers, Sparkles, Volume2, VolumeX } from 'lucide-react';
 
 export const AccessibilityBar: React.FC = () => {
   const {
@@ -18,6 +19,13 @@ export const AccessibilityBar: React.FC = () => {
   } = useSession();
 
   const [showModulesMenu, setShowModulesMenu] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => sound.getIsMuted());
+
+  const handleToggleSound = () => {
+    const nextMuted = sound.toggleMute();
+    setIsMuted(nextMuted);
+  };
+
 
   const hasAnyData = catState.administeredItems.length > 0 || Object.keys(triadResponses).length > 0;
 
@@ -146,6 +154,19 @@ export const AccessibilityBar: React.FC = () => {
           >
             <Type className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Dyslexic</span>
+          </button>
+
+          {/* Sensory Sound Toggle Button */}
+          <button
+            onClick={handleToggleSound}
+            className={`p-1.5 rounded-full text-xs transition-all border ${
+              !isMuted
+                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                : 'bg-white/5 text-slate-400 border-white/10 hover:text-white hover:border-white/20'
+            }`}
+            title={!isMuted ? 'Sonido sensorial activo (clic para silenciar)' : 'Sonido silenciado (clic para activar feedback acústico)'}
+          >
+            {!isMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
           </button>
 
           {/* Theme Switcher Pill (Dark, Sepia, Light) */}

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { VERBAL_ITEMS_POOL } from '../lib/psychometrics/verbalItemsPool';
 import { BookOpen, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { sound } from '../lib/audio/soundEngine';
 
 export const VerbalTask: React.FC = () => {
   const { verbalAnswers, submitVerbalAnswer, completeVerbalStage } = useSession();
@@ -12,13 +13,16 @@ export const VerbalTask: React.FC = () => {
   const selectedOption = verbalAnswers[currentItem.id];
 
   const handleSelectOption = (optIdx: number) => {
+    sound.playSoftClick();
     submitVerbalAnswer(currentItem.id, optIdx);
   };
 
   const handleNext = () => {
     if (currentIdx + 1 < VERBAL_ITEMS_POOL.length) {
+      sound.playTransitionTone();
       setCurrentIdx(prev => prev + 1);
     } else {
+      sound.playSuccessChime();
       completeVerbalStage();
     }
   };

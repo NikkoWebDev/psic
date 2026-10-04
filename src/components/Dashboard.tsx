@@ -18,6 +18,7 @@ import {
   ChevronUp,
   ArrowRight
 } from 'lucide-react';
+import { sound } from '../lib/audio/soundEngine';
 
 export const Dashboard: React.FC = () => {
   const { fullReport, restartSession, setStage, setSelectedModuleMode } = useSession();
@@ -28,6 +29,7 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     // Neuroaffirming celebration burst
     try {
+      sound.playSuccessChime();
       confetti({
         particleCount: 60,
         spread: 70,
@@ -55,6 +57,7 @@ export const Dashboard: React.FC = () => {
 
   const handleCopyClipboard = async () => {
     try {
+      sound.playSuccessChime();
       const fullTextToCopy = `${xmlPayload}\n\n<!-- COMPACT_DATA_TOKEN_BASE64: ${compactTokenBase64} -->`;
       await navigator.clipboard.writeText(fullTextToCopy);
       setCopied(true);

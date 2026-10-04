@@ -218,10 +218,28 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, []);
 
-  // Update theme & font class on <body>
+  // Update theme & font class on <html>, <body> and <meta theme-color>
   useEffect(() => {
-    document.body.classList.remove('theme-dark', 'theme-light', 'theme-sepia');
-    document.body.classList.add(`theme-${theme}`);
+    const root = document.documentElement;
+    const body = document.body;
+
+    root.classList.toggle('dark', theme === 'dark');
+    root.classList.remove('theme-dark', 'theme-light', 'theme-sepia');
+    root.classList.add(`theme-${theme}`);
+
+    body.classList.remove('theme-dark', 'theme-light', 'theme-sepia');
+    body.classList.add(`theme-${theme}`);
+
+    root.dataset.theme = theme;
+    body.dataset.theme = theme;
+
+    const meta = document.getElementById('themeColor');
+    if (meta) {
+      meta.setAttribute(
+        'content',
+        theme === 'dark' ? '#07090E' : theme === 'sepia' ? '#F4ECDC' : '#F8FAFC'
+      );
+    }
   }, [theme]);
 
   useEffect(() => {

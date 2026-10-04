@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { BatteryCharging, ArrowRight, PauseCircle, Sparkles, CheckCircle2, BarChart3 } from 'lucide-react';
+import { sound } from '../lib/audio/soundEngine';
 
 export const EnergyCheckpoint: React.FC = () => {
   const { setStage, generatePartialReport } = useSession();
@@ -11,12 +12,15 @@ export const EnergyCheckpoint: React.FC = () => {
   const [reCalibrationSeconds, setReCalibrationSeconds] = useState(30);
 
   const handleContinueNow = () => {
+    sound.playTransitionTone();
     setStage('STAGE_3_GC_VERBAL');
   };
 
   const handlePauseSession = () => {
+    sound.playSoftClick();
     setIsPausedView(true);
   };
+
 
   const handleStartReCalibration = () => {
     setIsReCalibrating(true);

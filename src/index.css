@@ -375,3 +375,207 @@
   box-shadow: 0 0 30px rgba(52, 211, 153, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
+/* ==========================================================================
+   THEME OVERRIDES FOR FULL-UI LIGHT & SEPIA (ANTI-IRLEN) TRANSFORMATION
+   ========================================================================== */
+
+/* LIGHT THEME */
+body.theme-light {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+body.theme-light:before {
+  background: radial-gradient(1100px 650px at 15% 5%, rgba(16, 185, 129, 0.18), transparent 60%),
+              radial-gradient(900px 550px at 85% 15%, rgba(14, 165, 233, 0.15), transparent 55%),
+              radial-gradient(1000px 800px at 50% 75%, rgba(139, 92, 246, 0.08), transparent 65%);
+}
+
+body.theme-light:after {
+  opacity: 0.15;
+  background-image: linear-gradient(to right, rgba(15, 23, 42, 0.12) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(15, 23, 42, 0.12) 1px, transparent 1px);
+}
+
+body.theme-light .text-white {
+  color: #0f172a !important;
+}
+
+body.theme-light .text-slate-200,
+body.theme-light .text-slate-300 {
+  color: #334155 !important;
+}
+
+body.theme-light .text-slate-400 {
+  color: #64748b !important;
+}
+
+body.theme-light .text-slate-500,
+body.theme-light .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+body.theme-light .bg-\[\#07090e\],
+body.theme-light .bg-\[\#0d111a\],
+body.theme-light .bg-\[\#0b0f19\] {
+  background-color: #ffffff !important;
+}
+
+body.theme-light .bg-\[\#07090e\]\/90,
+body.theme-light .bg-\[\#07090e\]\/80,
+body.theme-light .bg-\[\#07090e\]\/70,
+body.theme-light .bg-\[\#07090e\]\/60 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+body.theme-light .bg-black\/40,
+body.theme-light .bg-black\/50,
+body.theme-light .bg-black\/60 {
+  background-color: rgba(241, 245, 249, 0.9) !important;
+}
+
+body.theme-light .bg-white\/5,
+body.theme-light .bg-white\/\[0\.02\],
+body.theme-light .bg-white\/\[0\.03\],
+body.theme-light .bg-white\/\[0\.01\] {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+
+body.theme-light .border-white\/10,
+body.theme-light .border-white\/5,
+body.theme-light .border-white\/20,
+body.theme-light .border-white\/25 {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+body.theme-light .glass-card {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+}
+
+body.theme-light .glass-card:hover {
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08), 0 0 20px rgba(16, 185, 129, 0.1) !important;
+}
+
+body.theme-light .os-terminal {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08) !important;
+}
+
+body.theme-light .os-titlebar,
+body.theme-light .terminal-header {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #475569 !important;
+}
+
+body.theme-light .gradient-text {
+  background: linear-gradient(135deg, #0f172a 30%, #059669 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+
+/* SEPIA THEME (ANTI-IRLEN / SENSORY CALM) */
+body.theme-sepia {
+  background-color: #f4ecdc;
+  color: #29221b;
+}
+
+body.theme-sepia:before {
+  background: radial-gradient(1100px 650px at 15% 5%, rgba(5, 150, 105, 0.16), transparent 60%),
+              radial-gradient(900px 550px at 85% 15%, rgba(217, 119, 6, 0.14), transparent 55%),
+              radial-gradient(1000px 800px at 50% 75%, rgba(180, 83, 9, 0.08), transparent 65%);
+}
+
+body.theme-sepia:after {
+  opacity: 0.16;
+  background-image: linear-gradient(to right, rgba(75, 55, 30, 0.15) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(75, 55, 30, 0.15) 1px, transparent 1px);
+}
+
+body.theme-sepia .text-white {
+  color: #29221b !important;
+}
+
+body.theme-sepia .text-slate-200,
+body.theme-sepia .text-slate-300 {
+  color: #4a3b32 !important;
+}
+
+body.theme-sepia .text-slate-400 {
+  color: #6e5e4f !important;
+}
+
+body.theme-sepia .text-slate-500,
+body.theme-sepia .text-slate-600 {
+  color: #8c7866 !important;
+}
+
+body.theme-sepia .bg-\[\#07090e\],
+body.theme-sepia .bg-\[\#0d111a\],
+body.theme-sepia .bg-\[\#0b0f19\] {
+  background-color: #ede2cd !important;
+}
+
+body.theme-sepia .bg-\[\#07090e\]\/90,
+body.theme-sepia .bg-\[\#07090e\]\/80,
+body.theme-sepia .bg-\[\#07090e\]\/70,
+body.theme-sepia .bg-\[\#07090e\]\/60 {
+  background-color: rgba(237, 226, 205, 0.95) !important;
+}
+
+body.theme-sepia .bg-black\/40,
+body.theme-sepia .bg-black\/50,
+body.theme-sepia .bg-black\/60 {
+  background-color: rgba(230, 218, 196, 0.9) !important;
+}
+
+body.theme-sepia .bg-white\/5,
+body.theme-sepia .bg-white\/\[0\.02\],
+body.theme-sepia .bg-white\/\[0\.03\],
+body.theme-sepia .bg-white\/\[0\.01\] {
+  background-color: rgba(75, 55, 30, 0.05) !important;
+}
+
+body.theme-sepia .border-white\/10,
+body.theme-sepia .border-white\/5,
+body.theme-sepia .border-white\/20,
+body.theme-sepia .border-white\/25 {
+  border-color: rgba(75, 55, 30, 0.16) !important;
+}
+
+body.theme-sepia .glass-card {
+  background: rgba(245, 238, 220, 0.9) !important;
+  border-color: rgba(75, 55, 30, 0.15) !important;
+  box-shadow: 0 16px 36px rgba(60, 45, 25, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.6) !important;
+}
+
+body.theme-sepia .glass-card:hover {
+  border-color: rgba(5, 150, 105, 0.45) !important;
+  box-shadow: 0 20px 40px rgba(60, 45, 25, 0.12), 0 0 20px rgba(5, 150, 105, 0.1) !important;
+}
+
+body.theme-sepia .os-terminal {
+  background: rgba(247, 241, 227, 0.96) !important;
+  border-color: rgba(75, 55, 30, 0.18) !important;
+  box-shadow: 0 16px 40px rgba(60, 45, 25, 0.08) !important;
+}
+
+body.theme-sepia .os-titlebar,
+body.theme-sepia .terminal-header {
+  background: rgba(75, 55, 30, 0.06) !important;
+  border-color: rgba(75, 55, 30, 0.14) !important;
+  color: #5c4939 !important;
+}
+
+body.theme-sepia .gradient-text {
+  background: linear-gradient(135deg, #29221b 30%, #059669 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+

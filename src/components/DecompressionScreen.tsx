@@ -1,6 +1,7 @@
 // Decompression & Micro-Breather Screen (Sensory Decompression Layer)
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Coffee, Heart } from 'lucide-react';
+import { sound } from '../lib/audio/soundEngine';
 
 interface DecompressionScreenProps {
   stageTitle: string;
@@ -19,6 +20,12 @@ export const DecompressionScreen: React.FC<DecompressionScreenProps> = ({
   secondaryAction
 }) => {
   const [breathPhase, setBreathPhase] = useState<'Inhala suavemente' | 'Sostén el aire' | 'Exhala despacio'>('Inhala suavemente');
+
+  const handleContinueWithSound = () => {
+    sound.playTransitionTone();
+    onContinue();
+  };
+
 
   useEffect(() => {
     let step = 0;
@@ -76,7 +83,7 @@ export const DecompressionScreen: React.FC<DecompressionScreenProps> = ({
 
           <div className="space-y-3">
             <button
-              onClick={onContinue}
+              onClick={handleContinueWithSound}
               className="btn-nikko-primary w-full py-3.5 px-6 rounded-xl font-bold text-white shadow-xl flex items-center justify-center gap-2 text-sm"
             >
               <span>Continuar a: {nextStageName}</span>
