@@ -8,6 +8,7 @@ import {
   thetaSEMToIQSEM,
   calculateConfidenceInterval95,
   thetaToPercentile,
+  MIN_CAT_ITEMS,
   SEM_STOPPING_THRESHOLD,
   MAX_CAT_ITEMS
 } from './irt3pl';
@@ -69,11 +70,11 @@ self.onmessage = (event: MessageEvent) => {
     const percentile = thetaToPercentile(estimation.thetaEAP);
     const drasgowLz = calculateDrasgowLz(estimation.thetaEAP, responses);
 
-    // Stopping rules
+    // Stopping rules: Dynamic convergence after MIN_CAT_ITEMS
     let isTerminated = false;
     let terminationReason: 'SEM_CONVERGENCE' | 'MAX_ITEMS_REACHED' | 'POOL_EXHAUSTED' | undefined;
 
-    if (estimation.semTheta <= SEM_STOPPING_THRESHOLD) {
+    if (responses.length >= MIN_CAT_ITEMS && estimation.semTheta <= SEM_STOPPING_THRESHOLD) {
       isTerminated = true;
       terminationReason = 'SEM_CONVERGENCE';
     } else if (responses.length >= MAX_CAT_ITEMS) {

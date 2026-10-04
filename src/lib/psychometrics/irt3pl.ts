@@ -5,8 +5,10 @@ export const D_SCALING = 1.702;
 export const NUM_QUADRATURE_NODES = 61;
 export const QUADRATURE_MIN = -4.0;
 export const QUADRATURE_MAX = 4.0;
-export const SEM_STOPPING_THRESHOLD = 0.25; // Equivalent to r_xx >= 0.9375
-export const MAX_CAT_ITEMS = 20;
+export const MIN_CAT_ITEMS = 8; // Mínimo de reactivos para garantizar estabilidad Bayesiana inicial
+export const SEM_STOPPING_THRESHOLD = 0.30; // Confiabilidad clínica r_xx >= 0.91 (estándar CAT de alta eficiencia)
+export const MAX_CAT_ITEMS = 15; // Máximo de reactivos (15 ítems adaptativos equivalen a 45 ítems en test estático)
+
 
 // Quadrature nodes and normal prior weights
 export interface QuadratureGrid {

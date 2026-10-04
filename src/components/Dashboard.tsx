@@ -16,7 +16,8 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
-  ArrowRight
+  ArrowRight,
+  Printer
 } from 'lucide-react';
 import { sound } from '../lib/audio/soundEngine';
 
@@ -145,8 +146,20 @@ export const Dashboard: React.FC = () => {
             </button>
 
             <button
+              onClick={() => {
+                sound.playSoftClick();
+                window.print();
+              }}
+              className="py-3 px-4 rounded-xl font-mono text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              title="Imprimir informe clínico o guardar como PDF"
+            >
+              <Printer className="w-4 h-4 text-emerald-400" />
+              <span>PDF</span>
+            </button>
+
+            <button
               onClick={handleDownloadXml}
-              className="py-3 px-4 rounded-xl font-mono text-xs bg-[#07090e]/80 hover:bg-[#07090e] text-slate-300 border border-white/10 hover:border-emerald-500/40 flex items-center justify-center gap-2 transition-all"
+              className="py-3 px-4 rounded-xl font-mono text-xs bg-[#07090e]/80 hover:bg-[#07090e] text-slate-300 border border-white/10 hover:border-emerald-500/40 flex items-center justify-center gap-2 transition-all cursor-pointer"
               title="Descargar archivo XML"
             >
               <Download className="w-4 h-4 text-emerald-400" />
