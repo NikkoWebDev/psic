@@ -50,7 +50,14 @@ export function generateGeminiProfileXML(report: FullPsychometricReport): string
       <clinical_syndrome_flag>${chc.clinicalSyndromeFlag}</clinical_syndrome_flag>
       <certified_intelligence_potential>${chc.certifiedIntelligencePotential}</certified_intelligence_potential>
       <discrepancy_narrative>${chc.discrepancyNarrative}</discrepancy_narrative>
-    </discrepancy_analysis>
+    </discrepancy_analysis>${chc.exGaussian ? `
+    <ex_gaussian_chronometry>
+      <mu_baseline_speed_ms>${chc.exGaussian.mu}</mu_baseline_speed_ms>
+      <sigma_variability_ms>${chc.exGaussian.sigma}</sigma_variability_ms>
+      <tau_attentional_lapse_tail_ms>${chc.exGaussian.tau}</tau_attentional_lapse_tail_ms>
+      <attentional_lapse_ratio>${chc.exGaussian.lapseRatio}</attentional_lapse_ratio>
+      <clinical_stability_marker>${chc.exGaussian.clinicalMarker}</clinical_stability_marker>
+    </ex_gaussian_chronometry>` : ''}
     <broad_abilities_theta>
       <fluid_reasoning_gf>${chc.broadAbilitiesTheta.gf >= 0 ? '+' : ''}${chc.broadAbilitiesTheta.gf}</fluid_reasoning_gf>
       <working_memory_gwm>${chc.broadAbilitiesTheta.gwm >= 0 ? '+' : ''}${chc.broadAbilitiesTheta.gwm}</working_memory_gwm>
@@ -132,7 +139,14 @@ export function generateBase64Token(report: FullPsychometricReport): string {
       dab: report.personalityAndPhenotype.dabrowski,
       cb5t: [report.personalityAndPhenotype.cb5tPlasticity, report.personalityAndPhenotype.cb5tStability],
       hex: report.personalityAndPhenotype.hexacoHonestyHumility,
-      cart: [report.personalityAndPhenotype.cartAOT, report.personalityAndPhenotype.cognitiveMiserlinessResistance]
+      cart: [report.personalityAndPhenotype.cartAOT, report.personalityAndPhenotype.cognitiveMiserlinessResistance],
+      ...(report.cognitiveIntelligenceCHC.exGaussian ? {
+        exg: [
+          report.cognitiveIntelligenceCHC.exGaussian.mu,
+          report.cognitiveIntelligenceCHC.exGaussian.sigma,
+          report.cognitiveIntelligenceCHC.exGaussian.tau
+        ]
+      } : {})
     };
 
     const jsonStr = JSON.stringify(compactObj);

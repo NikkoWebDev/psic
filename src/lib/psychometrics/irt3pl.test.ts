@@ -3,12 +3,13 @@ import {
   calculateProbability3PL,
   calculateFisherInformation,
   estimateAbilityEAP,
+  selectNextItemFisher,
   calculateDrasgowLz,
   checkADHDImpulsiveAnomaly,
   thetaToWechslerIQ,
   QUADRATURE
 } from './irt3pl';
-import { MatrixResponseRecord } from './types';
+import { MatrixResponseRecord, MatrixItem } from './types';
 
 describe('IRT 3PL & CAT Engine Tests', () => {
   it('evaluates 3PL probability correctly at theta = b', () => {
@@ -98,5 +99,99 @@ describe('IRT 3PL & CAT Engine Tests', () => {
     expect(thetaToWechslerIQ(0.0)).toBe(100);
     expect(thetaToWechslerIQ(2.0)).toBe(130);
     expect(thetaToWechslerIQ(-1.0)).toBe(85);
+  });
+
+  it('selects item with highest Fisher Information when no history provided', () => {
+    const itemA: MatrixItem = {
+      id: 'item_a',
+      code: 'A',
+      tier: 2,
+      ruleType: 'rotation',
+      ruleDescription: 'Rotation test',
+      cells: [],
+      options: [],
+      a: 2.2,
+      b: 0.0,
+      c: 0.125,
+      correctOptionIndex: 0
+    };
+    const itemB: MatrixItem = {
+      id: 'item_b',
+      code: 'B',
+      tier: 2,
+      ruleType: 'progression',
+      ruleDescription: 'Progression test',
+      cells: [],
+      options: [],
+      a: 1.2,
+      b: 0.0,
+      c: 0.125,
+      correctOptionIndex: 0
+    };
+
+    const selected = selectNextItemFisher(0.0, [itemA, itemB]);
+    expect(selected?.id).toBe('item_a');
+  });
+
+  it('penalizes consecutive rule repetition to balance taxonomic cognitive variety', () => {
+    // itemRotation has higher raw Fisher info at theta=0.0
+    const itemRotation: MatrixItem = {
+      id: 'item_rot',
+      code: 'ROT',
+      tier: 2,
+      ruleType: 'rotation',
+      ruleDescription: 'Rotation test',
+      cells: [],
+      options: [],
+      a: 2.0,
+      b: 0.0,
+      c: 0.125,
+      correctOptionIndex: 0
+    };
+    // itemProgression has slightly lower raw Fisher info
+    const itemProgression: MatrixItem = {
+      id: 'item_prog',
+      code: 'PROG',
+      tier: 2,
+      ruleType: 'progression',
+      ruleDescription: 'Progression test',
+      cells: [],
+      options: [],
+      a: 1.8,
+      b: 0.0,
+      c: 0.125,
+      correctOptionIndex: 0
+    };
+
+    // Without history, rotation wins
+    const defaultSelect = selectNextItemFisher(0.0, [itemRotation, itemProgression]);
+    expect(defaultSelect?.id).toBe('item_rot');
+
+    // With history of 2 consecutive rotations, rotation is penalized (0.35x), progression wins!
+    const balancedSelect = selectNextItemFisher(
+      0.0,
+      [itemRotation, itemProgression],
+      ['rotation', 'rotation']
+    );
+    expect(balancedSelect?.id).toBe('item_prog');
+  });
+
+  it('safely selects the only available item even if penalizing consecutive rule', () => {
+    const onlyRotation: MatrixItem = {
+      id: 'item_rot_only',
+      code: 'ROT_ONLY',
+      tier: 3,
+      ruleType: 'rotation',
+      ruleDescription: 'Rotation only test',
+      cells: [],
+      options: [],
+      a: 2.0,
+      b: 1.5,
+      c: 0.125,
+      correctOptionIndex: 0
+    };
+
+    const selected = selectNextItemFisher(1.5, [onlyRotation], ['rotation', 'rotation']);
+    expect(selected?.id).toBe('item_rot_only');
   });
 });

@@ -12,7 +12,7 @@ import {
   SEM_STOPPING_THRESHOLD,
   MAX_CAT_ITEMS
 } from './irt3pl';
-import { MatrixItem, MatrixResponseRecord } from './types';
+import { MatrixItem, MatrixResponseRecord, MatrixRuleType } from './types';
 
 export interface WorkerProcessStepInput {
   responses: MatrixResponseRecord[];
@@ -85,8 +85,12 @@ self.onmessage = (event: MessageEvent) => {
       terminationReason = 'POOL_EXHAUSTED';
     }
 
-    // Fisher Information item selection if not terminated
-    const nextItem = isTerminated ? null : selectNextItemFisher(estimation.thetaEAP, availableItems);
+    // Fisher Information item selection with taxonomic content balancing
+    const recentRules = responses
+      .slice(-2)
+      .map(r => r.ruleType)
+      .filter((r): r is MatrixRuleType => Boolean(r));
+    const nextItem = isTerminated ? null : selectNextItemFisher(estimation.thetaEAP, availableItems, recentRules);
 
     const output: WorkerProcessStepOutput = {
       thetaEAP: estimation.thetaEAP,

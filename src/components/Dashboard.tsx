@@ -17,7 +17,8 @@ import {
   ChevronDown,
   ChevronUp,
   ArrowRight,
-  Printer
+  Printer,
+  Activity
 } from 'lucide-react';
 import { sound } from '../lib/audio/soundEngine';
 
@@ -418,6 +419,59 @@ export const Dashboard: React.FC = () => {
               <span className="text-base font-bold font-mono text-emerald-400">CI {chc.certifiedIntelligencePotential}</span>
             </div>
           </div>
+
+          {/* Ex-Gaussian Chronometric Breakdown (Gs) */}
+          {chc.exGaussian && (
+            <div className="mt-4 p-4 rounded-xl bg-[#07090e]/80 border border-white/10 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+                    Cronometría Mental Ex-Gaussiana (Gs / Lapsos TDAH)
+                  </span>
+                </div>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded border self-start sm:self-auto ${
+                  chc.exGaussian.clinicalMarker === 'ELEVATED_ATTENTIONAL_LAPSES'
+                    ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+                    : chc.exGaussian.clinicalMarker === 'MILD_VARIABILITY'
+                    ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                    : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                }`}>
+                  {chc.exGaussian.clinicalMarker === 'ELEVATED_ATTENTIONAL_LAPSES'
+                    ? 'Cola Exponencial Elevada (Firma TDAH)'
+                    : chc.exGaussian.clinicalMarker === 'MILD_VARIABILITY'
+                    ? 'Variabilidad Moderada'
+                    : 'Estabilidad Típica'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
+                  <span className="text-[10px] font-mono text-slate-400 block">// μ VELOCIDAD PURA:</span>
+                  <span className="text-sm font-bold font-mono text-white">{chc.exGaussian.mu} ms</span>
+                  <span className="text-[9px] text-slate-500 block mt-0.5">Componente motor</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
+                  <span className="text-[10px] font-mono text-slate-400 block">// σ DISPERSIÓN:</span>
+                  <span className="text-sm font-bold font-mono text-white">±{chc.exGaussian.sigma} ms</span>
+                  <span className="text-[9px] text-slate-500 block mt-0.5">Ruido sensorial</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
+                  <span className="text-[10px] font-mono text-slate-400 block">// τ COLA EXPONENCIAL:</span>
+                  <span className={`text-sm font-bold font-mono ${
+                    chc.exGaussian.tau >= 280 ? 'text-amber-400' : 'text-emerald-400'
+                  }`}>{chc.exGaussian.tau} ms</span>
+                  <span className="text-[9px] text-slate-500 block mt-0.5">Lapsos ejecutivos</span>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
+                {chc.exGaussian.clinicalMarker === 'ELEVATED_ATTENTIONAL_LAPSES'
+                  ? `Se detectaron micro-lapsos periódicos de inhibición atencional (τ = ${chc.exGaussian.tau}ms, ratio de lapse ${(chc.exGaussian.lapseRatio * 100).toFixed(0)}%). La velocidad visuomotora pura (μ = ${chc.exGaussian.mu}ms) opera normalmente, pero la asimetría positiva en la cola de latencias es un biomarcador cognitivo de modulación dopaminérgica típica del TDAH.`
+                  : `Cronometría atencional dentro de parámetros estables (τ = ${chc.exGaussian.tau}ms, sesgo = ${chc.exGaussian.skewness}). No se observa un alargamiento patológico de la cola de tiempos de respuesta.`}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -550,14 +604,112 @@ export const Dashboard: React.FC = () => {
           )}
 
           <div className="space-y-3 text-xs">
-            <div className="p-3 rounded-xl bg-[#07090e]/80 border border-white/10 flex justify-between items-center">
-              <div>
-                <span className="text-slate-400 block text-[10px] font-mono">// MONOTROPISMO (MQ):</span>
-                <span className="font-bold text-slate-200">
-                  {pheno.monotropismProfile === 'DEEP_TUNNEL' ? 'Túnel Profundo de Foco' : 'Atención Distribuida'}
-                </span>
+            {/* Monotropism Empirical Distribution Curve (Garau et al. 2023) */}
+            <div className="p-3.5 rounded-xl bg-[#07090e]/80 border border-white/10 space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <div>
+                  <span className="text-slate-400 block text-[10px] font-mono">// MONOTROPISMO (MQ):</span>
+                  <span className="font-bold text-slate-200">
+                    {pheno.monotropismProfile === 'DEEP_TUNNEL' ? 'Túnel Profundo de Foco' : 'Atención Distribuida'}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-lg font-mono font-bold text-emerald-400">{pheno.monotropismMQScore} / 100</span>
+                  <span className="text-[10px] text-slate-400 block font-mono">
+                    {pheno.monotropismMQScore >= 80 ? 'Perfil Autista / AuDHD' : pheno.monotropismMQScore >= 68 ? 'Perfil TDAH / Solapamiento' : 'Perfil Basal Normotípico'}
+                  </span>
+                </div>
               </div>
-              <span className="text-lg font-mono font-bold text-emerald-400">{pheno.monotropismMQScore} / 100</span>
+
+              {/* Empirical Density SVG */}
+              <div className="relative pt-1 pb-1">
+                <svg viewBox="0 0 380 95" className="w-full h-24 overflow-visible">
+                  <defs>
+                    <linearGradient id="gradAutistic" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#34d399" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#34d399" stopOpacity="0.02" />
+                    </linearGradient>
+                    <linearGradient id="gradNT" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#64748b" stopOpacity="0.2" />
+                      <stop offset="100%" stopColor="#64748b" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Horizontal baseline */}
+                  <line x1="10" y1="75" x2="370" y2="75" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+
+                  {/* Tick labels */}
+                  <text x="10" y="88" fill="#64748b" fontSize="8" fontFamily="monospace">20</text>
+                  <text x="100" y="88" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="middle">40</text>
+                  <text x="190" y="88" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="middle">60</text>
+                  <text x="280" y="88" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="middle">80</text>
+                  <text x="370" y="88" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="end">100</text>
+
+                  {/* Neurotypical Gaussian Curve: Mean 59.5, SD 11.5 */}
+                  {(() => {
+                    const pointsNT: string[] = [];
+                    const pointsAut: string[] = [];
+                    for (let x = 20; x <= 100; x += 2) {
+                      const svgX = ((x - 20) / 80) * 360 + 10;
+                      // NT
+                      const zNT = (x - 59.5) / 11.5;
+                      const yNT = 75 - Math.exp(-0.5 * zNT * zNT) * 45;
+                      pointsNT.push(`${svgX.toFixed(1)},${yNT.toFixed(1)}`);
+                      // Autistic / AuDHD: Mean 81.0, SD 9.8
+                      const zAut = (x - 81.0) / 9.8;
+                      const yAut = 75 - Math.exp(-0.5 * zAut * zAut) * 55;
+                      pointsAut.push(`${svgX.toFixed(1)},${yAut.toFixed(1)}`);
+                    }
+
+                    const pathNT = `M 10,75 L ${pointsNT.join(' L ')} L 370,75 Z`;
+                    const lineNT = `M ${pointsNT.join(' L ')}`;
+                    const pathAut = `M 10,75 L ${pointsAut.join(' L ')} L 370,75 Z`;
+                    const lineAut = `M ${pointsAut.join(' L ')}`;
+
+                    const userX = Math.min(370, Math.max(10, ((pheno.monotropismMQScore - 20) / 80) * 360 + 10));
+
+                    return (
+                      <g>
+                        {/* NT Area and Line */}
+                        <path d={pathNT} fill="url(#gradNT)" />
+                        <path d={lineNT} fill="none" stroke="#64748b" strokeWidth="1.5" strokeDasharray="3,3" opacity="0.7" />
+
+                        {/* Autistic Area and Line */}
+                        <path d={pathAut} fill="url(#gradAutistic)" />
+                        <path d={lineAut} fill="none" stroke="#34d399" strokeWidth="2" />
+
+                        {/* User Indicator */}
+                        <line x1={userX} y1="12" x2={userX} y2="75" stroke="#38bdf8" strokeWidth="2" strokeDasharray="2,2" />
+                        <circle cx={userX} cy="14" r="4.5" fill="#38bdf8" stroke="#ffffff" strokeWidth="1.5" style={{ filter: 'drop-shadow(0 0 6px rgba(56,189,248,0.8))' }} />
+                        <text
+                          x={userX > 320 ? userX - 6 : userX < 50 ? userX + 6 : userX}
+                          y="6"
+                          fill="#38bdf8"
+                          fontSize="9"
+                          fontWeight="bold"
+                          fontFamily="monospace"
+                          textAnchor={userX > 320 ? 'end' : userX < 50 ? 'start' : 'middle'}
+                        >
+                          Tú ({pheno.monotropismMQScore})
+                        </text>
+                      </g>
+                    );
+                  })()}
+                </svg>
+              </div>
+
+              {/* Distribution Legend & Study Citation */}
+              <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1 border-t border-white/5 text-[10px] text-slate-400 font-mono">
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-0.5 bg-slate-500 inline-block border-t border-dashed" /> NT (μ: 59.5)
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-0.5 bg-emerald-400 inline-block" /> Autista / AuDHD (μ: 81.0)
+                  </span>
+                </div>
+                <span className="text-slate-500 text-[9px]">Baremos Garau et al. (2023)</span>
+              </div>
             </div>
 
             <div className="p-3 rounded-xl bg-[#07090e]/80 border border-white/10 flex justify-between items-center">

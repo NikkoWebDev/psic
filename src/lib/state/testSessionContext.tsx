@@ -13,7 +13,8 @@ import {
   PersonalityAndPhenotypeScores,
   FullPsychometricReport,
   DiscrepancyProfile,
-  EvaluationScope
+  EvaluationScope,
+  MatrixRuleType
 } from '../psychometrics/types';
 import { MATRIX_ITEMS_POOL } from '../psychometrics/matrixItemsPool';
 import { VERBAL_ITEMS_POOL, calculateGcScore } from '../psychometrics/verbalItemsPool';
@@ -377,6 +378,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const newRecord: MatrixResponseRecord = {
       itemId: catCurrentItem.id,
       itemCode: catCurrentItem.code,
+      ruleType: catCurrentItem.ruleType,
       selectedOption: selectedOptionIndex,
       isCorrect,
       a: catCurrentItem.a,
@@ -432,7 +434,11 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updatedResponses.length >= MAX_CAT_ITEMS ||
         remainingAvailable.length === 0;
 
-      const nextItem = isTerminated ? null : selectNextItemFisher(estimation.thetaEAP, remainingAvailable);
+      const recentRules = updatedResponses
+        .slice(-2)
+        .map(r => r.ruleType)
+        .filter((r): r is MatrixRuleType => Boolean(r));
+      const nextItem = isTerminated ? null : selectNextItemFisher(estimation.thetaEAP, remainingAvailable, recentRules);
 
       handleWorkerStepResult({
         thetaEAP: estimation.thetaEAP,
@@ -571,7 +577,8 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       semThetaGf,
       thetaGc,
       thetaGwm,
-      thetaGs
+      thetaGs,
+      exGaussian: symbolMatchFinal?.exGaussian
     });
 
     const elapsedMinutes = Number(((Date.now() - sessionStartTime) / (1000 * 60)).toFixed(1));

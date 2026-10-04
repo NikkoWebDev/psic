@@ -1,4 +1,5 @@
 // Core types for NEUROSYNAPSE Psychometric Engine
+import { ExGaussianParameters } from './exGaussian';
 
 export type MatrixRuleType = 'progression' | 'rotation' | 'boolean' | 'topological';
 export type MatrixDifficultyTier = 1 | 2 | 3 | 4;
@@ -22,10 +23,11 @@ export interface MatrixItem {
 export interface MatrixResponseRecord {
   itemId: string;
   itemCode: string;
+  ruleType?: MatrixRuleType;
   selectedOption: number;
   isCorrect: boolean;
-  b: number;
   a: number;
+  b: number;
   latencyMs: number;
   isImpulsiveAnomaly?: boolean;
 }
@@ -103,6 +105,7 @@ export interface SymbolSpeedResult {
   meanTotalLatencyMs: number;
   thetaGs: number;
   percentile: number;
+  exGaussian?: ExGaussianParameters;
 }
 
 // Verbal-Conceptual Reasoning for Crystallized Ability (Gc)
@@ -151,6 +154,7 @@ export interface DiscrepancyProfile {
     gs: number;
     gc: number;
   };
+  exGaussian?: ExGaussianParameters;
 }
 
 // Forced-Choice Triads (Thurstonian IRT)

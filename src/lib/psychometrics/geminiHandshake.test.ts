@@ -176,4 +176,33 @@ describe('Gemini Spark Handshake Serializer Tests', () => {
     expect(xml).toContain('<personality_4a>false</personality_4a>');
     expect(xml).toContain('<phenotype_4b>false</phenotype_4b>');
   });
+
+  it('includes ex_gaussian_chronometry tags when exGaussian parameters are present', () => {
+    const reportWithExG: FullPsychometricReport = {
+      ...mockReport,
+      cognitiveIntelligenceCHC: {
+        ...mockReport.cognitiveIntelligenceCHC,
+        exGaussian: {
+          mu: 412.5,
+          sigma: 78.4,
+          tau: 295.2,
+          lapseRatio: 0.72,
+          skewness: 1.84,
+          clinicalMarker: 'ELEVATED_ATTENTIONAL_LAPSES',
+          clinicalInterpretation: 'Presencia significativa de cola exponencial (lapsos atencionales esporádicos).'
+        }
+      }
+    };
+
+    const xml = generateGeminiProfileXML(reportWithExG);
+    expect(xml).toContain('<ex_gaussian_chronometry>');
+    expect(xml).toContain('<mu_baseline_speed_ms>412.5</mu_baseline_speed_ms>');
+    expect(xml).toContain('<sigma_variability_ms>78.4</sigma_variability_ms>');
+    expect(xml).toContain('<tau_attentional_lapse_tail_ms>295.2</tau_attentional_lapse_tail_ms>');
+    expect(xml).toContain('<clinical_stability_marker>ELEVATED_ATTENTIONAL_LAPSES</clinical_stability_marker>');
+
+    const token = generateBase64Token(reportWithExG);
+    const decoded = JSON.parse(atob(token));
+    expect(decoded.exg).toEqual([412.5, 78.4, 295.2]);
+  });
 });

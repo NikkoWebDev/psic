@@ -1,5 +1,5 @@
 // Item Response Theory (3PL) & Computerized Adaptive Testing (CAT) Engine
-import { MatrixItem, MatrixResponseRecord } from './types';
+import { MatrixItem, MatrixResponseRecord, MatrixRuleType } from './types';
 
 export const D_SCALING = 1.702;
 export const NUM_QUADRATURE_NODES = 61;
@@ -194,22 +194,47 @@ export function estimateAbilityEAP(
 }
 
 /**
- * Select the optimal next item from pool maximizing Fisher Information at current θ
+ * Select the optimal next item from pool maximizing Fisher Information at current θ,
+ * with taxonomic content balancing to prevent consecutive rule clustering.
+ *
+ * References:
+ * - Kingsbury, G. G., & Zara, A. R. (1989). Procedures for selecting items for computerized adaptive tests.
+ * - van der Linden, W. J., & Pashley, P. J. (2000). Item selection and ability estimation in CAT.
  */
 export function selectNextItemFisher(
   currentTheta: number,
-  availableItems: MatrixItem[]
+  availableItems: MatrixItem[],
+  recentRuleTypes?: MatrixRuleType[]
 ): MatrixItem | null {
   if (availableItems.length === 0) return null;
 
   let bestItem: MatrixItem | null = null;
-  let maxInfo = -Infinity;
+  let maxScore = -Infinity;
+
+  const lastRule = recentRuleTypes && recentRuleTypes.length > 0
+    ? recentRuleTypes[recentRuleTypes.length - 1]
+    : null;
+  const secondLastRule = recentRuleTypes && recentRuleTypes.length > 1
+    ? recentRuleTypes[recentRuleTypes.length - 2]
+    : null;
 
   for (let i = 0; i < availableItems.length; i++) {
     const item = availableItems[i];
-    const info = calculateFisherInformation(currentTheta, item.a, item.b, item.c);
-    if (info > maxInfo) {
-      maxInfo = info;
+    const rawInfo = calculateFisherInformation(currentTheta, item.a, item.b, item.c);
+
+    let effectiveInfo = rawInfo;
+    if (item.ruleType && lastRule) {
+      if (item.ruleType === lastRule && item.ruleType === secondLastRule) {
+        // Severe penalty (0.35x) for attempting a 3rd consecutive item of the exact same cognitive rule
+        effectiveInfo *= 0.35;
+      } else if (item.ruleType === lastRule) {
+        // Moderate penalty (0.75x) for attempting a 2nd consecutive item of the same rule
+        effectiveInfo *= 0.75;
+      }
+    }
+
+    if (effectiveInfo > maxScore) {
+      maxScore = effectiveInfo;
       bestItem = item;
     }
   }

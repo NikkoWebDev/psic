@@ -15,16 +15,19 @@ export function calculateClassification(iq: number): string {
   return 'Límite / Compromiso de Rendimiento';
 }
 
+import { ExGaussianParameters } from './exGaussian';
+
 export interface DiscrepancyCalculationInput {
   thetaGf: number;
   semThetaGf: number;
   thetaGc: number;
   thetaGwm: number;
   thetaGs: number;
+  exGaussian?: ExGaussianParameters;
 }
 
 export function computeDiscrepancyProfile(input: DiscrepancyCalculationInput): DiscrepancyProfile {
-  const { thetaGf, semThetaGf, thetaGc, thetaGwm, thetaGs } = input;
+  const { thetaGf, semThetaGf, thetaGc, thetaGwm, thetaGs, exGaussian } = input;
 
   // 1. Corrected Composite Formulas with square root in denominator:
   // Z_comp = (theta_1 + theta_2) / sqrt(2 + 2 * r)
@@ -109,6 +112,11 @@ export function computeDiscrepancyProfile(input: DiscrepancyCalculationInput): D
     }
   }
 
+  // Enrich narrative with Ex-Gaussian attention lapse marker if present
+  if (exGaussian && exGaussian.clinicalMarker === 'ELEVATED_ATTENTIONAL_LAPSES') {
+    narrative += ` [Cronometría Ex-Gaussiana: Parámetro τ elevado (${exGaussian.tau} ms, ${Math.round(exGaussian.lapseRatio * 100)}% de la latencia total en lapsos atencionales), evidenciando que la vulnerabilidad en IEC proviene de fluctuaciones micro-ejecutivas episódicas y no de una lentitud motora basal].`;
+  }
+
   return {
     gai: {
       score: gaiScore,
@@ -136,6 +144,7 @@ export function computeDiscrepancyProfile(input: DiscrepancyCalculationInput): D
       gwm: Number(thetaGwm.toFixed(2)),
       gs: Number(thetaGs.toFixed(2)),
       gc: Number(thetaGc.toFixed(2))
-    }
+    },
+    exGaussian
   };
 }

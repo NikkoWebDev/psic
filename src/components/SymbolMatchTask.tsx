@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { SymbolTrialRecord, SymbolSpeedResult } from '../lib/psychometrics/types';
+import { computeExGaussian } from '../lib/psychometrics/exGaussian';
 import { Zap, Check, X, ArrowRight, Play } from 'lucide-react';
 import { sound } from '../lib/audio/soundEngine';
 
@@ -149,6 +150,10 @@ export const SymbolMatchTask: React.FC = () => {
       Math.min(99.5, Math.max(0.5, (1 / (1 + Math.exp(-1.702 * thetaGs))) * 100))
     );
 
+    // Compute Ex-Gaussian Decomposition (Mu, Sigma, Tau) for Attentional Lapses / ADHD
+    const latencies = logs.map(t => t.decisionTimeMs);
+    const exGaussian = computeExGaussian(latencies);
+
     const result: SymbolSpeedResult = {
       totalTrials,
       correctTrials,
@@ -157,7 +162,8 @@ export const SymbolMatchTask: React.FC = () => {
       meanMotorTapTimeMs,
       meanTotalLatencyMs,
       thetaGs,
-      percentile
+      percentile,
+      exGaussian
     };
 
     setTimeout(() => {
