@@ -9,6 +9,7 @@ export function generateGeminiProfileXML(report: FullPsychometricReport): string
   <metadata>
     <timestamp>${metadata.timestamp}</timestamp>
     <app_version>${metadata.appVersion}</app_version>
+    <age_bracket>${metadata.ageBracket || '26-45'}</age_bracket>
     <session_duration_minutes>${metadata.sessionDurationMinutes}</session_duration_minutes>
     <evaluation_scope>${metadata.evaluationScope || 'FULL'}</evaluation_scope>
     <drasgow_fit_statistic_lz>${metadata.drasgowFitStatisticLz}</drasgow_fit_statistic_lz>
@@ -122,6 +123,7 @@ export function generateBase64Token(report: FullPsychometricReport): string {
       v: '1.0',
       ts: report.metadata.timestamp,
       scope: report.metadata.evaluationScope || 'FULL',
+      age: report.metadata.ageBracket || '26-45',
       gai: report.cognitiveIntelligenceCHC.gai.score,
       cpi: report.cognitiveIntelligenceCHC.cpi.score,
       delta: report.cognitiveIntelligenceCHC.discrepancyDelta,

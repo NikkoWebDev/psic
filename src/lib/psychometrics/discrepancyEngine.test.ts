@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { computeDiscrepancyProfile } from './discrepancyEngine';
 
 describe('2e Clinical Discrepancy Engine Tests', () => {
-  it('applies the square root formula correctly in denominator', () => {
+  it('applies the square root formula correctly with sqrt(3.0) and sqrt(2.7) divisors', () => {
     // thetaGf = 2.4, thetaGc = 2.2, thetaGwm = -0.8, thetaGs = -0.6
     const profile = computeDiscrepancyProfile({
       thetaGf: 2.4,
@@ -12,15 +12,13 @@ describe('2e Clinical Discrepancy Engine Tests', () => {
       thetaGs: -0.6
     });
 
-    // Z_comp = (2.4 + 2.2) / sqrt(2 + 2 * 0.62) = 4.6 / sqrt(3.24) = 4.6 / 1.8 = 2.5555...
-    // IAG = 100 + 15 * 2.5555... = 100 + 38.33 = 138
-    expect(profile.gai.score).toBeGreaterThanOrEqual(135);
-    expect(profile.gai.score).toBeLessThanOrEqual(142);
+    // Z_comp = (2.4 + 2.2) / sqrt(2 + 2 * 0.50) = 4.6 / sqrt(3.0) ≈ 4.6 / 1.73205 = 2.6558
+    // IAG = round(100 + 15 * 2.6558) = 140
+    expect(profile.gai.score).toBe(140);
 
-    // Z_cpi = (-0.8 + -0.6) / sqrt(2 + 2 * 0.45) = -1.4 / sqrt(2.9) = -1.4 / 1.7029 = -0.822
-    // CPI = 100 + 15 * -0.822 = 100 - 12.33 = 88
-    expect(profile.cpi.score).toBeLessThanOrEqual(92);
-    expect(profile.cpi.score).toBeGreaterThanOrEqual(84);
+    // Z_cpi = (-0.8 + -0.6) / sqrt(2 + 2 * 0.35) = -1.4 / sqrt(2.7) ≈ -1.4 / 1.64317 = -0.852
+    // CPI = round(100 + 15 * -0.852) = 87
+    expect(profile.cpi.score).toBe(87);
   });
 
   it('triggers 2E_AACC_ADHD flag when Delta >= 23 with high GAI and low CPI', () => {

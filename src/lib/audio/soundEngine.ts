@@ -161,6 +161,38 @@ class SoundEngine {
       // ignore
     }
   }
+
+  // Sensory-Friendly Positive Tone (Practice verification success)
+  public playSuccessTone() {
+    this.playSuccessChime();
+  }
+
+  // Soft Low-Arousal Error Tone (Gentle notification, zero startle)
+  public playErrorTone() {
+    if (this.isMuted) return;
+    try {
+      this.initContext();
+      if (!this.ctx) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(160, this.ctx.currentTime + 0.12);
+
+      gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.13);
+    } catch (e) {
+      // ignore
+    }
+  }
 }
 
 export const sound = new SoundEngine();

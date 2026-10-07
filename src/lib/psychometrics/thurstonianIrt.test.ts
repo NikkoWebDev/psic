@@ -85,4 +85,48 @@ describe('Thurstonian IRT Dynamic Scoring Engine Tests', () => {
     expect(scores.dabrowski.intellectual).toBeLessThanOrEqual(100);
     expect(scores.identifiedLevers.length).toBe(2);
   });
+
+  it('produces continuous sigmoid distributions without static 15-point leaps', () => {
+    // Generate several different response patterns
+    const patternA: Record<string, TriadResponse> = {};
+    const patternB: Record<string, TriadResponse> = {};
+
+    TRIADS_POOL.slice(0, 10).forEach((t, i) => {
+      patternA[t.id] = {
+        triadId: t.id,
+        mostLikeId: t.statements[i % 3].id,
+        leastLikeId: t.statements[(i + 1) % 3].id
+      };
+      patternB[t.id] = {
+        triadId: t.id,
+        mostLikeId: t.statements[(i + 2) % 3].id,
+        leastLikeId: t.statements[i % 3].id
+      };
+    });
+
+    const scoresA = scoreThurstonianTriads(patternA);
+    const scoresB = scoreThurstonianTriads(patternB);
+
+    const values = [
+      scoresA.cb5tPlasticity,
+      scoresA.cb5tStability,
+      scoresA.hexacoHonestyHumility,
+      scoresA.cartAOT,
+      scoresB.cb5tPlasticity,
+      scoresB.cb5tStability,
+      scoresB.hexacoHonestyHumility,
+      scoresB.cartAOT
+    ];
+
+    // Verify scores are not confined to the old discrete set {5, 20, 35, 50, 65, 80, 95}
+    const discreteOldSet = new Set([5, 20, 35, 50, 65, 80, 95]);
+    const hasContinuousValues = values.some(v => !discreteOldSet.has(v));
+    expect(hasContinuousValues).toBe(true);
+
+    // Verify all scores are within [0, 100]
+    for (const v of values) {
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThanOrEqual(100);
+    }
+  });
 });

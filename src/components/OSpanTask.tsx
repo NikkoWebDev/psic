@@ -1,13 +1,20 @@
-// Complex Operation Span (O-Span) with nikko.dev Aesthetics
-import React, { useState, useEffect } from 'react';
+// Automated Operation Span (AOSPAN) with Redick & Engle (2012) Calibration & nikko.dev Aesthetics
+import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { OSpanRound, OSpanFinalScore, OSpanRoundResult } from '../lib/psychometrics/types';
-import { Check, X, RotateCcw, ArrowRight, ShieldAlert, Award, Layers } from 'lucide-react';
+import {
+  AOSPAN_SCORED_ROUNDS,
+  MATH_PRACTICE_TRIALS,
+  CANDIDATE_LETTERS,
+  calculateAdaptiveMathTimeout,
+  calculateTrialPCU,
+  gradeAOSpanSession
+} from '../lib/psychometrics/ospan';
+import { getAgeNormOffsets } from '../lib/psychometrics/ageNorms';
+import { Check, X, RotateCcw, ArrowRight, ShieldAlert, Award, Layers, Calculator, Zap, Clock } from 'lucide-react';
 import { sound } from '../lib/audio/soundEngine';
 
-const CANDIDATE_LETTERS = ['F', 'H', 'J', 'K', 'L', 'N', 'P', 'Q', 'R', 'S', 'T', 'Y'];
-
-// Pre-defined practice rounds
+// Pre-defined 2 practice rounds (span 2)
 const PRACTICE_ROUNDS: OSpanRound[] = [
   {
     spanLength: 2,
@@ -27,64 +34,21 @@ const PRACTICE_ROUNDS: OSpanRound[] = [
   }
 ];
 
-// Pre-defined 5 scored rounds
-const SCORED_ROUNDS: OSpanRound[] = [
-  {
-    spanLength: 2,
-    isPractice: false,
-    steps: [
-      { equationText: '(4 * 2) - 3 = 5', claimedResult: 5, isEquationCorrect: true, letter: 'L' },
-      { equationText: '(6 / 2) + 5 = 8', claimedResult: 8, isEquationCorrect: true, letter: 'S' }
-    ]
-  },
-  {
-    spanLength: 3,
-    isPractice: false,
-    steps: [
-      { equationText: '(3 * 3) - 2 = 7', claimedResult: 7, isEquationCorrect: true, letter: 'F' },
-      { equationText: '(10 / 2) + 3 = 9', claimedResult: 9, isEquationCorrect: false, letter: 'N' },
-      { equationText: '(4 * 3) - 4 = 8', claimedResult: 8, isEquationCorrect: true, letter: 'Q' }
-    ]
-  },
-  {
-    spanLength: 3,
-    isPractice: false,
-    steps: [
-      { equationText: '(7 * 2) - 5 = 9', claimedResult: 9, isEquationCorrect: true, letter: 'J' },
-      { equationText: '(12 / 3) + 4 = 7', claimedResult: 7, isEquationCorrect: false, letter: 'H' },
-      { equationText: '(5 * 3) - 6 = 9', claimedResult: 9, isEquationCorrect: true, letter: 'P' }
-    ]
-  },
-  {
-    spanLength: 4,
-    isPractice: false,
-    steps: [
-      { equationText: '(6 * 2) - 4 = 8', claimedResult: 8, isEquationCorrect: true, letter: 'T' },
-      { equationText: '(15 / 3) + 2 = 8', claimedResult: 8, isEquationCorrect: false, letter: 'K' },
-      { equationText: '(4 * 4) - 5 = 11', claimedResult: 11, isEquationCorrect: true, letter: 'R' },
-      { equationText: '(8 / 4) + 6 = 8', claimedResult: 8, isEquationCorrect: true, letter: 'L' }
-    ]
-  },
-  {
-    spanLength: 5,
-    isPractice: false,
-    steps: [
-      { equationText: '(9 * 2) - 7 = 11', claimedResult: 11, isEquationCorrect: true, letter: 'S' },
-      { equationText: '(16 / 4) + 5 = 9', claimedResult: 9, isEquationCorrect: true, letter: 'F' },
-      { equationText: '(5 * 4) - 8 = 10', claimedResult: 10, isEquationCorrect: false, letter: 'N' },
-      { equationText: '(18 / 3) + 3 = 9', claimedResult: 9, isEquationCorrect: true, letter: 'Y' },
-      { equationText: '(7 * 3) - 9 = 12', claimedResult: 12, isEquationCorrect: true, letter: 'J' }
-    ]
-  }
-];
-
 export const OSpanTask: React.FC = () => {
-  const { completeOSpan } = useSession();
+  const { completeOSpan, ageBracket } = useSession();
 
   const [sessionPhase, setSessionPhase] = useState<
-    'PRACTICE_WELCOME' | 'PRACTICE' | 'SCORED_TRANSITION' | 'SCORED'
-  >('PRACTICE_WELCOME');
+    'MATH_CALIBRATION_WELCOME' | 'MATH_CALIBRATION' | 'PRACTICE_WELCOME' | 'PRACTICE' | 'SCORED_TRANSITION' | 'SCORED'
+  >('MATH_CALIBRATION_WELCOME');
 
+  // Math Calibration State (3 trials)
+  const [mathCalibStep, setMathCalibStep] = useState(0);
+  const mathCalibStartRef = useRef<number>(0);
+  const [mathLatencies, setMathLatencies] = useState<number[]>([]);
+  const [adaptiveTimeoutMs, setAdaptiveTimeoutMs] = useState<number>(3500);
+  const [baselineMathLatency, setBaselineMathLatency] = useState<number>(1800);
+
+  // Task navigation state
   const [currentRoundIdx, setCurrentRoundIdx] = useState(0);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [subState, setSubState] = useState<'MATH' | 'LETTER' | 'RECALL' | 'FEEDBACK'>('MATH');
@@ -95,7 +59,10 @@ export const OSpanTask: React.FC = () => {
   const [practiceResults, setPracticeResults] = useState<OSpanRoundResult[]>([]);
   const [scoredResults, setScoredResults] = useState<OSpanRoundResult[]>([]);
 
-  const roundsPool = sessionPhase === 'PRACTICE' ? PRACTICE_ROUNDS : SCORED_ROUNDS;
+  // Math timeout countdown timer in scored phase
+  const mathTimerStartRef = useRef<number>(0);
+
+  const roundsPool = sessionPhase === 'PRACTICE' ? PRACTICE_ROUNDS : AOSPAN_SCORED_ROUNDS;
   const currentRound = roundsPool[currentRoundIdx];
   const currentStep = currentRound?.steps[currentStepIdx];
 
@@ -115,14 +82,39 @@ export const OSpanTask: React.FC = () => {
     return () => clearTimeout(timer);
   }, [subState, currentStepIdx, currentRound]);
 
+  // Adaptive Math Timeout in Scored Phase
+  useEffect(() => {
+    let timeoutTimer: ReturnType<typeof setTimeout>;
+    if (sessionPhase === 'SCORED' && subState === 'MATH' && currentStep) {
+      mathTimerStartRef.current = performance.now();
+      timeoutTimer = setTimeout(() => {
+        // User exceeded individualized timeout -> mark as failed equation and advance
+        sound.playErrorTone();
+        setMathAnswers(prev => [...prev, false]);
+        setSubState('LETTER');
+      }, adaptiveTimeoutMs);
+    }
+    return () => clearTimeout(timeoutTimer);
+  }, [sessionPhase, subState, currentStep, currentStepIdx, currentRoundIdx, adaptiveTimeoutMs]);
+
   // Keyboard shortcut listener for OSpan (Math & Recall)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (sessionPhase === 'MATH_CALIBRATION') {
+        const k = e.key.toLowerCase();
+        if (k === 'v' || k === '1' || k === 't' || k === 's') {
+          handleCalibrationMathChoice(true);
+        } else if (k === 'f' || k === '2' || k === 'n') {
+          handleCalibrationMathChoice(false);
+        }
+        return;
+      }
+
       if (sessionPhase !== 'PRACTICE' && sessionPhase !== 'SCORED') return;
 
       if (subState === 'MATH') {
         const k = e.key.toLowerCase();
-        if (k === 'v' || k === '1' || k === 't') {
+        if (k === 'v' || k === '1' || k === 't' || k === 's') {
           handleMathChoice(true);
         } else if (k === 'f' || k === '2' || k === 'n') {
           handleMathChoice(false);
@@ -141,8 +133,34 @@ export const OSpanTask: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [subState, sessionPhase, currentStep, recalledLetters, currentRound]);
+  }, [subState, sessionPhase, currentStep, recalledLetters, currentRound, mathCalibStep]);
 
+  // Math Calibration Handlers
+  const handleStartCalibration = () => {
+    setSessionPhase('MATH_CALIBRATION');
+    setMathCalibStep(0);
+    setMathLatencies([]);
+    mathCalibStartRef.current = performance.now();
+  };
+
+  const handleCalibrationMathChoice = (isTrue: boolean) => {
+    const latency = performance.now() - mathCalibStartRef.current;
+    sound.playSoftClick();
+
+    const nextLatencies = [...mathLatencies, latency];
+    setMathLatencies(nextLatencies);
+
+    if (mathCalibStep + 1 < MATH_PRACTICE_TRIALS.length) {
+      setMathCalibStep(prev => prev + 1);
+      mathCalibStartRef.current = performance.now();
+    } else {
+      // Calculate individual adaptive timeout: max(3500, mean + 2.5 * sd)
+      const calib = calculateAdaptiveMathTimeout(nextLatencies);
+      setAdaptiveTimeoutMs(calib.timeoutMs);
+      setBaselineMathLatency(calib.meanLatency);
+      setSessionPhase('PRACTICE_WELCOME');
+    }
+  };
 
   const handleMathChoice = (isTrue: boolean) => {
     if (!currentStep) return;
@@ -176,6 +194,7 @@ export const OSpanTask: React.FC = () => {
 
     const roundCompleteSuccess = correctCount === currentRound.spanLength;
     const mathAccCount = mathAnswers.filter(Boolean).length;
+    const trialScore = calculateTrialPCU(recalledLetters, targetLetters);
 
     const roundResult: OSpanRoundResult = {
       roundIndex: currentRoundIdx,
@@ -186,7 +205,8 @@ export const OSpanTask: React.FC = () => {
       recalledLetters,
       targetLetters,
       correctLetterCount: correctCount,
-      roundCompleteSuccess
+      roundCompleteSuccess,
+      trialScore
     };
 
     if (sessionPhase === 'PRACTICE') {
@@ -196,7 +216,7 @@ export const OSpanTask: React.FC = () => {
       const nextScored = [...scoredResults, roundResult];
       setScoredResults(nextScored);
 
-      if (currentRoundIdx + 1 < SCORED_ROUNDS.length) {
+      if (currentRoundIdx + 1 < AOSPAN_SCORED_ROUNDS.length) {
         setCurrentRoundIdx(prev => prev + 1);
         setCurrentStepIdx(0);
         setMathAnswers([]);
@@ -230,37 +250,104 @@ export const OSpanTask: React.FC = () => {
   };
 
   const finalizeOSpan = (results: OSpanRoundResult[]) => {
-    const totalLettersPresented = results.reduce((sum, r) => sum + r.spanLength, 0);
-    const totalLettersCorrect = results.reduce((sum, r) => sum + r.correctLetterCount, 0);
-    const absoluteOSpanScore = results.reduce(
-      (sum, r) => (r.roundCompleteSuccess ? sum + r.spanLength : sum),
-      0
+    const ageOffsetGwm = getAgeNormOffsets(ageBracket).offsetGwm;
+    const finalScore: OSpanFinalScore = gradeAOSpanSession(
+      results,
+      ageOffsetGwm,
+      baselineMathLatency,
+      adaptiveTimeoutMs
     );
-
-    const totalMathEquations = results.reduce((sum, r) => sum + r.mathTotalCount, 0);
-    const totalMathCorrect = results.reduce((sum, r) => sum + r.mathAccuracyCount, 0);
-    const mathAccuracyRate = Math.round((totalMathCorrect / Math.max(1, totalMathEquations)) * 100);
-
-    const rawRatio = absoluteOSpanScore / totalLettersPresented;
-    const thetaGwm = Number(((rawRatio - 0.5) / 0.22).toFixed(2));
-    const percentile = Math.round(
-      Math.min(99.5, Math.max(1, (1 / (1 + Math.exp(-1.702 * thetaGwm))) * 100))
-    );
-
-    const finalScore: OSpanFinalScore = {
-      totalRounds: results.length,
-      totalLettersPresented,
-      totalLettersCorrect,
-      absoluteOSpanScore,
-      mathAccuracyRate,
-      thetaGwm,
-      percentile
-    };
-
     completeOSpan(finalScore);
   };
 
-  // Phase 1: Welcome to Practice
+  // Phase: Math Calibration Welcome
+  if (sessionPhase === 'MATH_CALIBRATION_WELCOME') {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="glass-card p-6 sm:p-8 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 font-bold">
+              <Calculator className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="eyebrow">// etapa 2a · calibración aritmética</div>
+              <h2 className="text-xl font-bold font-display text-white">
+                Calibración de Ritmo Cognitivo (AOSPAN)
+              </h2>
+            </div>
+          </div>
+
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Antes de comenzar la tarea de memoria de trabajo, resolveremos <strong className="text-sky-300">3 operaciones aritméticas simples</strong> para calibrar tu velocidad natural de procesamiento y evitar penalizaciones por tiempo arbitrario.
+          </p>
+
+          <div className="bg-black/50 rounded-2xl p-4 sm:p-5 border border-white/5 space-y-3 text-xs text-slate-300 font-mono">
+            <div className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 font-bold flex items-center justify-center shrink-0">1</span>
+              <span>Determina si cada ecuación es <strong className="text-emerald-400">Verdadera</strong> o <strong className="text-rose-400">Falsa</strong>.</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 font-bold flex items-center justify-center shrink-0">2</span>
+              <span>Responde con tu velocidad cómoda habitual (sin precipitarte ni demorarte artificialmente).</span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleStartCalibration}
+            className="btn-nikko-primary w-full py-4 text-xs font-bold uppercase tracking-wider cursor-pointer"
+          >
+            <span>Iniciar Calibración Aritmética</span>
+            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Phase: Math Calibration Trials (3 trials)
+  if (sessionPhase === 'MATH_CALIBRATION') {
+    const calibTrial = MATH_PRACTICE_TRIALS[mathCalibStep];
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+        <div className="glass-card p-4 flex items-center justify-between">
+          <span className="text-xs font-mono text-sky-400 font-bold">
+            Calibración de Velocidad Aritmética
+          </span>
+          <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-black/40 border border-white/10 text-slate-300">
+            Ensayo {mathCalibStep + 1} / {MATH_PRACTICE_TRIALS.length}
+          </span>
+        </div>
+
+        <div className="glass-card p-8 sm:p-10 text-center space-y-6">
+          <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+            ¿Es correcto el resultado de la ecuación?
+          </span>
+          <div className="py-8 px-4 bg-black/60 rounded-2xl border border-white/10 text-3xl sm:text-4xl font-mono font-bold tracking-widest text-white shadow-inner">
+            {calibTrial.equationText}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+            <button
+              onPointerDown={() => handleCalibrationMathChoice(true)}
+              className="py-4 px-6 rounded-2xl font-bold bg-emerald-500/15 border border-emerald-500/40 hover:bg-emerald-500/25 text-emerald-300 flex items-center justify-center gap-2 text-sm transition-all active:scale-95 cursor-pointer font-mono"
+            >
+              <Check className="w-4 h-4 stroke-[3]" />
+              <span>Verdadero</span>
+            </button>
+            <button
+              onPointerDown={() => handleCalibrationMathChoice(false)}
+              className="py-4 px-6 rounded-2xl font-bold bg-rose-500/15 border border-rose-500/40 hover:bg-rose-500/25 text-rose-300 flex items-center justify-center gap-2 text-sm transition-all active:scale-95 cursor-pointer font-mono"
+            >
+              <X className="w-4 h-4 stroke-[3]" />
+              <span>Falso</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Phase: Practice Welcome (Letters + Math)
   if (sessionPhase === 'PRACTICE_WELCOME') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8">
@@ -270,42 +357,42 @@ export const OSpanTask: React.FC = () => {
               <Layers className="w-5 h-5" />
             </div>
             <div>
-              <div className="eyebrow">// etapa 2a · competencia ejecutiva</div>
+              <div className="eyebrow">// etapa 2a · memoria operativa</div>
               <h2 className="text-xl font-bold font-display text-white">
-                Memoria de Trabajo Operativa (O-Span)
+                Memoria de Trabajo Operativa (AOSPAN)
               </h2>
             </div>
           </div>
 
+          <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl text-xs text-emerald-300 flex items-center gap-3">
+            <Clock className="w-4 h-4 shrink-0" />
+            <span>Ritmo calibrado: Tu ventana adaptativa de cálculo se ha fijado en <strong>{(adaptiveTimeoutMs / 1000).toFixed(1)}s</strong> por operación.</span>
+          </div>
+
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            Esta tarea evalúa tu capacidad para mantener y manipular información activa en la mente mientras intercalas operaciones aritméticas intermedias.
+            Ahora combinaremos las operaciones aritméticas con la memorización de letras en orden secuencial (norma Engle & Redick 2012).
           </p>
 
           <div className="bg-black/50 rounded-2xl p-4 sm:p-5 border border-white/5 space-y-3 text-xs text-slate-300 font-mono">
             <div className="flex items-start gap-3">
               <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0">1</span>
-              <span>Evalúa la operación aritmética: pulsa <strong>Verdadero</strong> o <strong>Falso</strong>.</span>
+              <span>Evalúa la ecuación matemática dentro de tu ventana adaptativa.</span>
             </div>
             <div className="flex items-start gap-3">
               <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0">2</span>
-              <span>Aparecerá una <strong>letra</strong> durante 1.4 segundos. Memorízala en orden.</span>
+              <span>Aparecerá una <strong>letra</strong> durante 1.4 segundos. Memorízala en orden exacto.</span>
             </div>
             <div className="flex items-start gap-3">
               <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0">3</span>
-              <span>Al terminar la serie, reconstruye la secuencia de letras en el teclado.</span>
+              <span>Al finalizar la serie, reconstruye la secuencia en la cuadrícula.</span>
             </div>
-          </div>
-
-          <div className="p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-2xl text-xs text-amber-300 flex items-center gap-3">
-            <ShieldAlert className="w-4 h-4 shrink-0" />
-            <span>Incluye <strong>2 ensayos de práctica guiados</strong> con retroalimentación para afinar la interfaz sin afectar tus puntuaciones.</span>
           </div>
 
           <button
             onClick={() => setSessionPhase('PRACTICE')}
             className="btn-nikko-primary w-full py-4 text-xs font-bold uppercase tracking-wider cursor-pointer"
           >
-            <span>Iniciar Práctica Guiada</span>
+            <span>Iniciar 2 Rondas de Práctica</span>
             <ArrowRight className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
@@ -313,7 +400,7 @@ export const OSpanTask: React.FC = () => {
     );
   }
 
-  // Phase Transition: After Practice
+  // Phase: Scored Transition
   if (sessionPhase === 'SCORED_TRANSITION') {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
@@ -321,10 +408,10 @@ export const OSpanTask: React.FC = () => {
           <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
             <Check className="w-6 h-6 stroke-[3]" />
           </div>
-          <div className="eyebrow">// práctica superada</div>
-          <h2 className="text-xl font-bold font-display text-white">¡Mecánica Asimilada!</h2>
+          <div className="eyebrow">// calibración superada</div>
+          <h2 className="text-xl font-bold font-display text-white">¡Mecánica Dominada!</h2>
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            A continuación iniciamos las 5 rondas oficiales con series de longitud creciente.
+            A continuación realizaremos la batería completa de evaluación oficial (series de 2 a 7 letras, 12 rondas en total con calificación por crédito parcial PCU sin límites de techo).
           </p>
           <button
             onClick={handleStartScored}
@@ -338,7 +425,7 @@ export const OSpanTask: React.FC = () => {
     );
   }
 
-  // Active Rounds
+  // Active Rounds (Practice or Scored)
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       {/* Terminal Titlebar Container */}
@@ -350,7 +437,7 @@ export const OSpanTask: React.FC = () => {
             <span className="os-dot os-dot-green"></span>
           </div>
           <span className="text-xs font-mono text-emerald-400 font-bold">
-            {sessionPhase === 'PRACTICE' ? 'Modo Práctica' : 'O-Span Oficial'}
+            {sessionPhase === 'PRACTICE' ? 'Modo Práctica' : 'AOSPAN Oficial (PCU)'}
           </span>
           <span className="text-slate-600 font-mono text-xs">/</span>
           <span className="text-xs font-mono text-slate-300">
@@ -366,9 +453,16 @@ export const OSpanTask: React.FC = () => {
       {/* Sub-State: MATH */}
       {subState === 'MATH' && currentStep && (
         <div className="glass-card p-8 sm:p-10 text-center space-y-6">
-          <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
-            ¿Es correcto el resultado de la ecuación?
-          </span>
+          <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+            <span className="uppercase tracking-wider">¿Es correcto el resultado de la ecuación?</span>
+            {sessionPhase === 'SCORED' && (
+              <span className="text-amber-400 flex items-center gap-1 font-bold">
+                <Clock className="w-3.5 h-3.5" />
+                <span>Timeout adaptativo: {(adaptiveTimeoutMs / 1000).toFixed(1)}s</span>
+              </span>
+            )}
+          </div>
+
           <div className="py-8 px-4 bg-black/60 rounded-2xl border border-white/10 text-3xl sm:text-4xl font-mono font-bold tracking-widest text-white shadow-inner">
             {currentStep.equationText}
           </div>

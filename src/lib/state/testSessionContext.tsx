@@ -12,10 +12,11 @@ import {
   TriadResponse,
   PersonalityAndPhenotypeScores,
   FullPsychometricReport,
-  DiscrepancyProfile,
   EvaluationScope,
-  MatrixRuleType
+  MatrixRuleType,
+  AgeBracket
 } from '../psychometrics/types';
+import { getAgeNormOffsets } from '../psychometrics/ageNorms';
 import { MATRIX_ITEMS_POOL } from '../psychometrics/matrixItemsPool';
 import { VERBAL_ITEMS_POOL, calculateGcScore } from '../psychometrics/verbalItemsPool';
 import { TRIADS_POOL } from '../psychometrics/triadsPool';
@@ -64,6 +65,9 @@ interface SessionContextValue {
   setTheme: (theme: AppTheme) => void;
   font: AppFont;
   setFont: (font: AppFont) => void;
+  // Normative Developmental Calibration
+  ageBracket: AgeBracket;
+  setAgeBracket: (bracket: AgeBracket) => void;
   // Stage 1: Gf CAT
   catCurrentItem: MatrixItem | null;
   catState: CATState;
@@ -125,6 +129,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Accessibility state
   const [theme, setTheme] = useState<AppTheme>('dark');
   const [font, setFont] = useState<AppFont>('sans');
+  const [ageBracket, setAgeBracket] = useState<AgeBracket>('26-45');
 
   // Stage & module state
   const [currentStage, setCurrentStage] = useState<AssessmentStage>('WELCOME');
@@ -475,7 +480,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const completeVerbalStage = () => {
-    const result = calculateGcScore(verbalAnswers);
+    const result = calculateGcScore(verbalAnswers, getAgeNormOffsets(ageBracket).offsetGc);
     setVerbalResult(result);
     if (selectedModuleMode === 'COGNITIVE_ONLY') {
       generatePartialReport('COGNITIVE_ONLY', result);
@@ -538,7 +543,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     currentTriads?: Record<string, TriadResponse>
   ) => {
     const effectiveTriads = currentTriads || triadResponses;
-    const effectiveVerbal = currentVerbal || verbalResult || (Object.keys(verbalAnswers).length > 0 ? calculateGcScore(verbalAnswers) : null);
+    const effectiveVerbal = currentVerbal || verbalResult || (Object.keys(verbalAnswers).length > 0 ? calculateGcScore(verbalAnswers, getAgeNormOffsets(ageBracket).offsetGc) : null);
 
     // Compute dynamic personality and phenotype scores from actual responses
     const scores = scoreThurstonianTriads(effectiveTriads);
@@ -602,7 +607,8 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const finalReportData: FullPsychometricReport = {
       metadata: {
         timestamp: new Date().toISOString(),
-        appVersion: 'NEUROSYNAPSE_v1.0',
+        appVersion: 'NEUROSYNAPSE_v3.0_ULTRA',
+        ageBracket,
         sessionDurationMinutes: Math.max(2, elapsedMinutes),
         drasgowFitStatisticLz: catState.drasgowLz,
         testingIntegrityFlag: catState.anomaliesDetected > 1 ? 'PROVISIONAL_ATTENTION_SLIPS' : 'VALID',
@@ -673,6 +679,8 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setStage: setCurrentStage,
     selectedModuleMode,
     setSelectedModuleMode,
+    ageBracket,
+    setAgeBracket,
     theme,
     setTheme,
     font,

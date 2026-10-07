@@ -15,7 +15,7 @@ import {
 import { FaqSection } from './FaqSection';
 
 export const WelcomeScreen: React.FC = () => {
-  const { setStage, setSelectedModuleMode } = useSession();
+  const { setStage, setSelectedModuleMode, ageBracket, setAgeBracket } = useSession();
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 sm:py-14 space-y-12">
@@ -53,6 +53,41 @@ export const WelcomeScreen: React.FC = () => {
             <p className="text-sm sm:text-base text-slate-300 max-w-xl leading-relaxed">
               NEUROSYNAPSE es un motor computarizado adaptativo (CAT) de grado clínico diseñado para evaluar Altas Capacidades (AACC), TDAH y Doble Excepcionalidad (2e). Integra IRT 3PL, O-Span complejo, y 30 tríadas Thurstonianas libres de deseabilidad social.
             </p>
+
+            {/* Stage 0: Normative Age Bracket & Accessibility Calibration */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#07090e]/80 border border-white/10 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="eyebrow text-emerald-400">// ETAPA 0 · BAREMO NORMATIVO DE EDAD</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                  WISC-V / WAIS-IV
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[
+                  { id: '8-11', label: '8–11 años', sub: 'Niñez (WISC-V)' },
+                  { id: '12-15', label: '12–15 años', sub: 'Adolescencia (WISC-V)' },
+                  { id: '16-25', label: '16–25 años', sub: 'Juventud (WAIS-IV)' },
+                  { id: '26-45', label: '26–45 años', sub: 'Línea Base (WAIS-IV)' },
+                  { id: '46-65', label: '46–65 años', sub: 'Madurez (WAIS-IV)' },
+                  { id: '65+', label: '65+ años', sub: 'Senior (WAIS-IV)' }
+                ].map(bracket => (
+                  <button
+                    key={bracket.id}
+                    type="button"
+                    onClick={() => setAgeBracket(bracket.id as any)}
+                    className={`p-2.5 rounded-xl text-left border font-mono transition-all cursor-pointer ${
+                      ageBracket === bracket.id
+                        ? 'bg-emerald-500/15 border-emerald-500/50 text-white shadow-[0_0_15px_rgba(52,211,153,0.15)] ring-1 ring-emerald-500/30'
+                        : 'bg-black/40 border-white/5 hover:border-white/20 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <div className="text-xs font-bold">{bracket.label}</div>
+                    <div className="text-[10px] text-slate-500">{bracket.sub}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* CTA & Quick Links */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">

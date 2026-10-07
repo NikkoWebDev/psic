@@ -4,57 +4,61 @@ import { TriadResponse, PersonalityAndPhenotypeScores, TraitKey } from './types'
 import { TRIADS_POOL } from './triadsPool';
 
 export function scoreThurstonianTriads(responses: Record<string, TriadResponse>): PersonalityAndPhenotypeScores {
-  // Accumulate raw utility weights per trait
-  const traitUtilities: Record<TraitKey, { score: number; count: number }> = {
-    cb5t_plasticity: { score: 0, count: 0 },
-    cb5t_stability: { score: 0, count: 0 },
-    hexaco_honesty_humility: { score: 0, count: 0 },
-    cart_aot: { score: 0, count: 0 },
-    cart_cognitive_miserliness_resistance: { score: 0, count: 0 },
-    monotropism_mq: { score: 0, count: 0 },
-    bdefs_time_myopia: { score: 0, count: 0 },
-    bdefs_inhibition: { score: 0, count: 0 },
-    bdefs_activation: { score: 0, count: 0 },
-    bdefs_emotional_regulation: { score: 0, count: 0 },
-    cat_q_camouflaging: { score: 0, count: 0 },
-    dunn_sensory_sensitivity: { score: 0, count: 0 },
-    dabrowski_intellectual: { score: 0, count: 0 },
-    dabrowski_imaginative: { score: 0, count: 0 },
-    dabrowski_emotional: { score: 0, count: 0 },
-    dabrowski_psychomotor: { score: 0, count: 0 },
-    dabrowski_sensual: { score: 0, count: 0 }
+  // Accumulate latent trait utility eta_d across pairwise comparisons
+  const traitEta: Record<TraitKey, number> = {
+    cb5t_plasticity: 0,
+    cb5t_stability: 0,
+    hexaco_honesty_humility: 0,
+    cart_aot: 0,
+    cart_cognitive_miserliness_resistance: 0,
+    monotropism_mq: 0,
+    bdefs_time_myopia: 0,
+    bdefs_inhibition: 0,
+    bdefs_activation: 0,
+    bdefs_emotional_regulation: 0,
+    cat_q_camouflaging: 0,
+    dunn_sensory_sensitivity: 0,
+    dabrowski_intellectual: 0,
+    dabrowski_imaginative: 0,
+    dabrowski_emotional: 0,
+    dabrowski_psychomotor: 0,
+    dabrowski_sensual: 0
   };
 
-  // Evaluate each triad
+  // Evaluate each triad via 3 pairwise comparisons: M > N, M > L, N > L
   for (const triad of TRIADS_POOL) {
     const userResp = responses[triad.id];
     if (!userResp) continue;
 
-    for (const stmt of triad.statements) {
-      const trait = stmt.trait;
-      traitUtilities[trait].count += 1;
+    const mostStmt = triad.statements.find(s => s.id === userResp.mostLikeId);
+    const leastStmt = triad.statements.find(s => s.id === userResp.leastLikeId);
+    const neutralStmt = triad.statements.find(
+      s => s.id !== userResp.mostLikeId && s.id !== userResp.leastLikeId
+    );
 
-      if (stmt.id === userResp.mostLikeId) {
-        traitUtilities[trait].score += 1.0 * stmt.weight;
-      } else if (stmt.id === userResp.leastLikeId) {
-        traitUtilities[trait].score -= 1.0 * stmt.weight;
-      } else {
-        // Neutral middle item
-        traitUtilities[trait].score += 0.0;
-      }
-    }
+    if (!mostStmt || !leastStmt || !neutralStmt) continue;
+
+    // Pairwise comparison 1: Most > Neutral (y_M>N = 1)
+    traitEta[mostStmt.trait] += 0.5 * (mostStmt.weight ?? 1.0);
+    traitEta[neutralStmt.trait] -= 0.5 * (neutralStmt.weight ?? 1.0);
+
+    // Pairwise comparison 2: Most > Least (y_M>L = 1)
+    traitEta[mostStmt.trait] += 0.5 * (mostStmt.weight ?? 1.0);
+    traitEta[leastStmt.trait] -= 0.5 * (leastStmt.weight ?? 1.0);
+
+    // Pairwise comparison 3: Neutral > Least (y_N>L = 1)
+    traitEta[neutralStmt.trait] += 0.5 * (neutralStmt.weight ?? 1.0);
+    traitEta[leastStmt.trait] -= 0.5 * (leastStmt.weight ?? 1.0);
   }
 
-  // Convert raw utilities to 0-100 normalized score
-  // Since each trait is compared across several triads, max theoretical utility is +count, min is -count
+  // Smooth continuous sigmoid mapping:
+  // Score_d = round( 100 / (1 + exp(-0.45 * eta_d)) )
+  // Guarantees continuous values (e.g. 44, 56, 61, 71, 83) without discrete 15-point leaps
   const getNormScore = (key: TraitKey, defaultVal = 50): number => {
-    const entry = traitUtilities[key];
-    if (!entry || entry.count === 0) return defaultVal;
-    // Map [-count, +count] to [0, 100] with linear/sigmoid scaling
-    const meanUtility = entry.score / entry.count; // in [-1.0, +1.0]
-    // Normalized score centered at 50, spanning [5, 95] based on preference ratio
-    const scaled = 50 + meanUtility * 45;
-    return Math.round(Math.max(5, Math.min(98, scaled)));
+    const eta = traitEta[key];
+    if (eta === undefined || isNaN(eta)) return defaultVal;
+    const score = Math.round(100 / (1 + Math.exp(-0.45 * eta)));
+    return Math.max(0, Math.min(100, score));
   };
 
   const cb5tPlasticity = getNormScore('cb5t_plasticity', 50);

@@ -1,10 +1,11 @@
 // Rapid Symbol Pattern Matching Task for Processing Speed (Gs)
-// 45-second discrimination task with sub-millisecond chronometry via performance.now() and pointerdown events
+// 45-second discrimination task with Practice Shield and sub-millisecond Ex-Gaussian chronometry
 import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from '../lib/state/testSessionContext';
 import { SymbolTrialRecord, SymbolSpeedResult } from '../lib/psychometrics/types';
 import { computeExGaussian } from '../lib/psychometrics/exGaussian';
-import { Zap, Check, X, ArrowRight, Play } from 'lucide-react';
+import { getAgeNormOffsets } from '../lib/psychometrics/ageNorms';
+import { Zap, Check, X, ArrowRight, Play, ShieldAlert, Sparkles } from 'lucide-react';
 import { sound } from '../lib/audio/soundEngine';
 
 const SYMBOL_SET = ['⬡', '◇', '△', '○', '□', '▽', '✦', '⬢', '⊕', '⊗', '⊛', '⊘'];
@@ -35,9 +36,12 @@ function generateRandomTrial(trialIndex: number): {
 }
 
 export const SymbolMatchTask: React.FC = () => {
-  const { completeSymbolMatch } = useSession();
+  const { completeSymbolMatch, ageBracket } = useSession();
 
-  const [phase, setPhase] = useState<'INSTRUCTIONS' | 'RUNNING' | 'FINISHED'>('INSTRUCTIONS');
+  const [phase, setPhase] = useState<'INSTRUCTIONS' | 'PRACTICE' | 'PRACTICE_COMPLETED' | 'RUNNING' | 'FINISHED'>('INSTRUCTIONS');
+  const [practiceStep, setPracticeStep] = useState(0); // 0 or 1 (2 mandatory practice trials)
+  const [practiceFeedback, setPracticeFeedback] = useState<{ isCorrect: boolean; text: string } | null>(null);
+
   const [timeLeft, setTimeLeft] = useState(45);
   const [currentTrialIdx, setCurrentTrialIdx] = useState(0);
 
@@ -47,7 +51,7 @@ export const SymbolMatchTask: React.FC = () => {
 
   const trialsLogRef = useRef<SymbolTrialRecord[]>([]);
 
-  // 45-second active test timer
+  // 45-second active test timer (ONLY runs during 'RUNNING')
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     if (phase === 'RUNNING') {
@@ -73,7 +77,8 @@ export const SymbolMatchTask: React.FC = () => {
 
   // Keyboard shortcut support (S/ArrowLeft/1 = SÍ, N/ArrowRight/2 = NO)
   useEffect(() => {
-    if (phase !== 'RUNNING') return;
+    if (phase !== 'RUNNING' && phase !== 'PRACTICE') return;
+    if (practiceFeedback !== null) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
@@ -88,11 +93,15 @@ export const SymbolMatchTask: React.FC = () => {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [phase, currentTrialData]);
-
+  }, [phase, currentTrialData, practiceFeedback]);
 
   const handlePointerUp = (choice: boolean) => {
+    if (phase === 'PRACTICE') {
+      handlePracticeResponse(choice);
+      return;
+    }
     if (phase !== 'RUNNING') return;
+
     sound.playSpeedTick();
 
     const pointerUpTime = performance.now();
@@ -122,6 +131,49 @@ export const SymbolMatchTask: React.FC = () => {
     trialStartTimeRef.current = performance.now();
   };
 
+  const handlePracticeResponse = (choice: boolean) => {
+    const isCorrect = choice === currentTrialData.isMatchPresent;
+    if (isCorrect) {
+      sound.playSuccessTone();
+      setPracticeFeedback({ isCorrect: true, text: '¡Correcto! Respuesta precisa.' });
+    } else {
+      sound.playErrorTone();
+      setPracticeFeedback({
+        isCorrect: false,
+        text: currentTrialData.isMatchPresent
+          ? 'No coincide: El símbolo sí estaba presente en el grupo.'
+          : 'No coincide: El símbolo objetivo no estaba en el grupo.'
+      });
+    }
+
+    setTimeout(() => {
+      setPracticeFeedback(null);
+      if (practiceStep < 1) {
+        setPracticeStep(1);
+        setCurrentTrialData(generateRandomTrial(999));
+        trialStartTimeRef.current = performance.now();
+      } else {
+        setPhase('PRACTICE_COMPLETED');
+      }
+    }, 900);
+  };
+
+  const handleStartPractice = () => {
+    setPhase('PRACTICE');
+    setPracticeStep(0);
+    setPracticeFeedback(null);
+    setCurrentTrialData(generateRandomTrial(100));
+    trialStartTimeRef.current = performance.now();
+  };
+
+  const handleStartScored = () => {
+    trialsLogRef.current = [];
+    setCurrentTrialIdx(0);
+    setTimeLeft(45);
+    setCurrentTrialData(generateRandomTrial(0));
+    setPhase('RUNNING');
+  };
+
   const finishTask = () => {
     setPhase('FINISHED');
     const logs = trialsLogRef.current;
@@ -141,18 +193,22 @@ export const SymbolMatchTask: React.FC = () => {
 
     const meanTotalLatencyMs = meanDecisionTimeMs + meanMotorTapTimeMs;
 
-    // Psychometric standard score for Gs:
-    // Normative expectations: ~ 28-36 trials in 45 seconds
-    // Theta Gs centered at 0.0 with typical range [-2.5, +2.5]
-    const netCorrectSpeed = correctTrials - (totalTrials - correctTrials);
-    const thetaGs = Number(((netCorrectSpeed - 24) / 6.0).toFixed(2));
-    const percentile = Math.round(
-      Math.min(99.5, Math.max(0.5, (1 / (1 + Math.exp(-1.702 * thetaGs))) * 100))
-    );
-
     // Compute Ex-Gaussian Decomposition (Mu, Sigma, Tau) for Attentional Lapses / ADHD
     const latencies = logs.map(t => t.decisionTimeMs);
     const exGaussian = computeExGaussian(latencies);
+
+    // Standardized ability:
+    // theta_Gs = ((1400 - mu) / 350) + AgeOffset_Gs (penalized only if tau > 450 ms)
+    const ageOffsetGs = getAgeNormOffsets(ageBracket).offsetGs;
+    const mu = exGaussian ? exGaussian.mu : meanDecisionTimeMs;
+    const tau = exGaussian ? exGaussian.tau : 0;
+    const tauPenalty = tau > 450 ? (tau - 450) / 500 : 0;
+    const rawThetaGs = (1400 - mu) / 350 + ageOffsetGs - tauPenalty;
+    const thetaGs = Number(Math.max(-3.0, Math.min(3.0, rawThetaGs)).toFixed(2));
+
+    const percentile = Math.round(
+      Math.min(99.5, Math.max(0.5, (1 / (1 + Math.exp(-1.702 * thetaGs))) * 100))
+    );
 
     const result: SymbolSpeedResult = {
       totalTrials,
@@ -221,14 +277,44 @@ export const SymbolMatchTask: React.FC = () => {
               </div>
             </div>
 
+            <div className="p-3.5 bg-sky-500/10 border border-sky-500/25 rounded-2xl text-xs text-sky-300 flex items-center gap-3">
+              <ShieldAlert className="w-4 h-4 shrink-0 text-sky-400" />
+              <span><strong>Escudo de Práctica Ex-Gaussiano</strong>: Incluye 2 ensayos de práctica no puntuados para familiarizarte antes de activar el cronómetro oficial.</span>
+            </div>
+
             <button
-              onClick={() => setPhase('RUNNING')}
-              className="btn-nikko-primary w-full py-3.5 px-6 rounded-xl font-bold text-white shadow-xl flex items-center justify-center gap-2.5"
+              onClick={handleStartPractice}
+              className="btn-nikko-primary w-full py-3.5 px-6 rounded-xl font-bold text-white shadow-xl flex items-center justify-center gap-2.5 cursor-pointer"
             >
-              <Play className="w-4 h-4 fill-current" />
-              <span>Iniciar Tarea de Velocidad (45s)</span>
+              <span>Iniciar 2 Ensayos de Práctica</span>
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Phase: Practice Completed Transition
+  if (phase === 'PRACTICE_COMPLETED') {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-12 text-center">
+        <div className="glass-card p-6 sm:p-8 space-y-5">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+            <Check className="w-6 h-6 stroke-[3]" />
+          </div>
+          <div className="eyebrow text-emerald-400">// PRÁCTICA SUPERADA</div>
+          <h2 className="text-xl font-bold font-display text-white">¡Mecánica Verificada!</h2>
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Has completado los 2 ensayos de calibración. A continuación comenzará la prueba oficial de <strong className="text-amber-300">45 segundos cronometrados</strong>. Mantén el ritmo más rápido posible sin sacrificar la exactitud.
+          </p>
+          <button
+            onClick={handleStartScored}
+            className="btn-nikko-primary w-full py-4 text-xs font-bold uppercase tracking-wider cursor-pointer mt-4 flex items-center justify-center gap-2"
+          >
+            <Play className="w-4 h-4 fill-current" />
+            <span>Comenzar Evaluación Oficial (45s)</span>
+          </button>
         </div>
       </div>
     );
@@ -252,7 +338,9 @@ export const SymbolMatchTask: React.FC = () => {
     );
   }
 
-  // Phase: Running
+  // Phase: Practice or Running
+  const isPractice = phase === 'PRACTICE';
+
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
       {/* Timer & Trial Header */}
@@ -260,25 +348,33 @@ export const SymbolMatchTask: React.FC = () => {
         <div className="flex items-center gap-2">
           <span className="pulse-dot" />
           <span className="text-xs font-mono font-bold text-slate-300">
-            Ensayos: <span className="text-emerald-400">{currentTrialIdx}</span>
+            {isPractice ? (
+              <span>Práctica: <span className="text-sky-400">{practiceStep + 1} / 2</span></span>
+            ) : (
+              <span>Ensayos: <span className="text-emerald-400">{currentTrialIdx}</span></span>
+            )}
           </span>
         </div>
-        <div className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-1.5">
-          <Zap className="w-3.5 h-3.5" />
-          <span>Tiempo: {timeLeft}s</span>
+        <div className={`text-xs font-mono font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${
+          isPractice ? 'bg-sky-500/10 border border-sky-500/30 text-sky-300' : 'bg-amber-500/10 border border-amber-500/30 text-amber-300'
+        }`}>
+          {isPractice ? <Sparkles className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
+          <span>{isPractice ? 'Ensayo de Calibración' : `Tiempo: ${timeLeft}s`}</span>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="w-full bg-[#0d111a] border border-white/10 h-2 rounded-full overflow-hidden mb-6 p-[1px]">
-        <div
-          className="bg-gradient-to-r from-emerald-500 to-amber-400 h-full rounded-full transition-all duration-1000 ease-linear shadow-[0_0_12px_rgba(251,191,36,0.5)]"
-          style={{ width: `${(timeLeft / 45) * 100}%` }}
-        />
-      </div>
+      {/* Progress Bar (scored only) */}
+      {!isPractice && (
+        <div className="w-full bg-[#0d111a] border border-white/10 h-2 rounded-full overflow-hidden mb-6 p-[1px]">
+          <div
+            className="bg-gradient-to-r from-emerald-500 to-amber-400 h-full rounded-full transition-all duration-1000 ease-linear shadow-[0_0_12px_rgba(251,191,36,0.5)]"
+            style={{ width: `${(timeLeft / 45) * 100}%` }}
+          />
+        </div>
+      )}
 
       {/* Symbol Comparison Area */}
-      <div className="glass-card rounded-2xl overflow-hidden shadow-2xl mb-6">
+      <div className="glass-card rounded-2xl overflow-hidden shadow-2xl mb-6 relative">
         {/* Terminal Header */}
         <div className="terminal-header px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -288,7 +384,7 @@ export const SymbolMatchTask: React.FC = () => {
             <span className="ml-2 font-mono text-[11px] text-slate-400">psic@nikko.dev: ~/gs-matching</span>
           </div>
           <span className="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-            ENSAYO #{currentTrialIdx + 1}
+            {isPractice ? `PRÁCTICA #${practiceStep + 1}` : `ENSAYO #${currentTrialIdx + 1}`}
           </span>
         </div>
 
@@ -314,12 +410,22 @@ export const SymbolMatchTask: React.FC = () => {
             </div>
           </div>
 
+          {/* Instant feedback banner for practice */}
+          {practiceFeedback && (
+            <div className={`p-2.5 rounded-xl font-mono text-xs font-bold transition-all ${
+              practiceFeedback.isCorrect ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+            }`}>
+              {practiceFeedback.text}
+            </div>
+          )}
+
           {/* Pointerdown Touch Response Buttons */}
           <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto pt-2">
             <button
               onPointerDown={() => handlePointerDown(true)}
               onPointerUp={() => handlePointerUp(true)}
-              className="py-4 rounded-xl font-bold bg-emerald-500/15 hover:bg-emerald-500/25 active:bg-emerald-500/35 border border-emerald-500/50 text-emerald-300 text-lg shadow-[0_0_20px_rgba(52,211,153,0.15)] transition-all active:scale-95 flex flex-col items-center justify-center gap-1 select-none cursor-pointer"
+              disabled={practiceFeedback !== null}
+              className="py-4 rounded-xl font-bold bg-emerald-500/15 hover:bg-emerald-500/25 active:bg-emerald-500/35 border border-emerald-500/50 text-emerald-300 text-lg shadow-[0_0_20px_rgba(52,211,153,0.15)] transition-all active:scale-95 flex flex-col items-center justify-center gap-1 select-none cursor-pointer disabled:opacity-50"
             >
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5 stroke-[3]" />
@@ -331,7 +437,8 @@ export const SymbolMatchTask: React.FC = () => {
             <button
               onPointerDown={() => handlePointerDown(false)}
               onPointerUp={() => handlePointerUp(false)}
-              className="py-4 rounded-xl font-bold bg-rose-500/15 hover:bg-rose-500/25 active:bg-rose-500/35 border border-rose-500/50 text-rose-300 text-lg shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all active:scale-95 flex flex-col items-center justify-center gap-1 select-none cursor-pointer"
+              disabled={practiceFeedback !== null}
+              className="py-4 rounded-xl font-bold bg-rose-500/15 hover:bg-rose-500/25 active:bg-rose-500/35 border border-rose-500/50 text-rose-300 text-lg shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all active:scale-95 flex flex-col items-center justify-center gap-1 select-none cursor-pointer disabled:opacity-50"
             >
               <div className="flex items-center gap-2">
                 <X className="w-5 h-5 stroke-[3]" />

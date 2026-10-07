@@ -6,7 +6,8 @@ describe('Gemini Spark Handshake Serializer Tests', () => {
   const mockReport: FullPsychometricReport = {
     metadata: {
       timestamp: '2026-10-01T15:00:00Z',
-      appVersion: 'NEUROSYNAPSE_v1.0',
+      appVersion: 'NEUROSYNAPSE_v3.0_ULTRA',
+      ageBracket: '12-15',
       sessionDurationMinutes: 24.5,
       drasgowFitStatisticLz: 0.42,
       testingIntegrityFlag: 'VALID'
@@ -81,6 +82,8 @@ describe('Gemini Spark Handshake Serializer Tests', () => {
 
   it('contains all required metadata and CHC tags', () => {
     const xml = generateGeminiProfileXML(mockReport);
+    expect(xml).toContain('<app_version>NEUROSYNAPSE_v3.0_ULTRA</app_version>');
+    expect(xml).toContain('<age_bracket>12-15</age_bracket>');
     expect(xml).toContain('<general_ability_index_gai>');
     expect(xml).toContain('<score>136</score>');
     expect(xml).toContain('<delta_gai_cpi>47</delta_gai_cpi>');

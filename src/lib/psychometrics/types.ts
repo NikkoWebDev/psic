@@ -61,6 +61,14 @@ export interface OSpanRound {
   isPractice?: boolean;
 }
 
+export type AgeBracket = '8-11' | '12-15' | '16-25' | '26-45' | '46-65' | '65+';
+
+export interface AgeNormOffsets {
+  offsetGwm: number;
+  offsetGc: number;
+  offsetGs: number;
+}
+
 export interface OSpanRoundResult {
   roundIndex: number;
   spanLength: number;
@@ -71,6 +79,7 @@ export interface OSpanRoundResult {
   targetLetters: string[];
   correctLetterCount: number;
   roundCompleteSuccess: boolean;
+  trialScore?: number; // Partial-Credit Unit score for this trial: correctLetterCount / spanLength
 }
 
 export interface OSpanFinalScore {
@@ -78,7 +87,10 @@ export interface OSpanFinalScore {
   totalLettersPresented: number;
   totalLettersCorrect: number;
   absoluteOSpanScore: number; // Sum of letters from rounds with 100% accurate recall
+  totalPCUScore: number; // Partial-Credit Unit score (sum of trial fractional scores 0.0 to 12.0)
   mathAccuracyRate: number; // Must be >= 85% for high validity
+  mathBaselineLatencyMs?: number;
+  adaptiveMathTimeoutMs?: number;
   thetaGwm: number;
   percentile: number;
 }
@@ -235,6 +247,7 @@ export interface FullPsychometricReport {
     sessionDurationMinutes: number;
     drasgowFitStatisticLz: number;
     testingIntegrityFlag: 'VALID' | 'PROVISIONAL_ATTENTION_SLIPS';
+    ageBracket?: AgeBracket;
     evaluationScope?: EvaluationScope;
     completedModules?: {
       gfMatrices: boolean;

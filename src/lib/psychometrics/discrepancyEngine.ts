@@ -3,8 +3,8 @@
 import { DiscrepancyProfile } from './types';
 import { standardNormalCDF } from './irt3pl';
 
-export const R_GF_GC = 0.62; // Empirical correlation between Gf and Gc (Wechsler WAIS-IV / CHC)
-export const R_GWM_GS = 0.45; // Empirical correlation between Gwm and Gs
+export const R_GF_GC = 0.50; // Empirical correlation between Gf and Gc (divisor sqrt(2 + 2*0.50) = sqrt(3.0))
+export const R_GWM_GS = 0.35; // Empirical correlation between Gwm and Gs (divisor sqrt(2 + 2*0.35) = sqrt(2.7))
 
 export function calculateClassification(iq: number): string {
   if (iq >= 130) return 'Muy Superior / Alta Capacidad Intelectual';
@@ -91,11 +91,11 @@ export function computeDiscrepancyProfile(input: DiscrepancyCalculationInput): D
 
   if (isDiscrepant) {
     isFsiqValid = false;
-    certifiedPotential = gaiScore; // NAGC gold standard: certify intelligence at GAI
+    certifiedPotential = Math.max(gaiScore, cpiScore); // NAGC gold standard: max(IAG, IEC)
 
-    if (gaiScore >= 120 && cpiScore < 100) {
+    if (gaiScore >= 125 || cpiScore >= 125) {
       clinicalSyndromeFlag = '2E_AACC_ADHD';
-      narrative = `Discrepancia crítica superior a 1.5 DE (${delta} puntos, Tasa Base: ${populationBaseRate}). El Cociente Intelectual Total global (CIT) queda formalmente INVALIDADO e ininterpretable por asimetría ejecutiva. La capacidad intelectual real se certifica en el IAG (${gaiScore}). El perfil es característico de Doble Excepcionalidad (AACC + TDAH/Disfunción Ejecutiva), donde la elevada potencia de razonamiento abstracto convive con un cuello de botella en la memoria de trabajo operativa o la velocidad motora.`;
+      narrative = `Discrepancia crítica superior a 1.5 DE (${delta} puntos, Tasa Base: ${populationBaseRate}). El Cociente Intelectual Total global (CIT) queda formalmente INVALIDADO e ininterpretable por asimetría ejecutiva. La capacidad intelectual real se certifica en el potencial máximo (${certifiedPotential}). El perfil es característico de Doble Excepcionalidad (AACC + TDAH/Disfunción Ejecutiva), donde la elevada potencia de razonamiento convive con un cuello de botella en la memoria de trabajo operativa o la velocidad motora.`;
     } else {
       clinicalSyndromeFlag = 'ASYMMETRIC_SPEED_VULNERABILITY';
       narrative = `Discrepancia significativa de ${delta} puntos entre la capacidad de razonamiento conceptual (IAG: ${gaiScore}) y la eficiencia de procesamiento (IEC: ${cpiScore}). El CIT global presenta dispersión estadística que recomienda interpretar los índices de manera desglosada.`;
