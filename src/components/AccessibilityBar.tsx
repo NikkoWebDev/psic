@@ -45,10 +45,12 @@ export const AccessibilityBar: React.FC = () => {
             className="flex items-center gap-2.5 group"
             title="Ir a nikko.dev"
           >
-            {/* nikko.dev circular brand mark */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-300 text-slate-950 font-black flex items-center justify-center text-sm shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform font-mono">
-              N
-            </div>
+            {/* NEUROSYNAPSE official logo mark */}
+            <img
+              src="/logo.png"
+              alt="NEUROSYNAPSE"
+              className="w-8 h-8 rounded-lg object-contain bg-white/5 border border-white/10 group-hover:scale-105 transition-transform"
+            />
             <div className="leading-tight">
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-sm tracking-tight text-white font-display">

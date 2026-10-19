@@ -32,6 +32,21 @@ export const WelcomeScreen: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
           {/* Hero Left Content */}
           <div className="lg:col-span-7 space-y-6">
+            {/* Brand Lockup */}
+            <div className="flex items-center gap-3">
+              <img
+                src="/logo.png"
+                alt="NEUROSYNAPSE"
+                className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl object-contain bg-white/5 border border-white/10 shadow-lg shadow-emerald-500/10"
+              />
+              <div className="leading-tight">
+                <div className="text-lg sm:text-xl font-extrabold font-display tracking-tight text-white">
+                  NEUROSYNAPSE
+                </div>
+                <div className="text-[10px] font-mono text-emerald-400">CAT IRT 3PL · psic.nikko.dev</div>
+              </div>
+            </div>
+
             {/* Status Line Pill (nikko.dev signature) */}
             <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono">
               <span className="pulse-dot"></span>

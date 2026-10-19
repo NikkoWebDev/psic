@@ -109,6 +109,14 @@ export const Dashboard: React.FC = () => {
 
         <div className="p-6 sm:p-8 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <img
+                src="/logo.png"
+                alt="NEUROSYNAPSE"
+                className="h-10 w-10 rounded-lg object-contain bg-white/5 border border-white/10"
+              />
+              <span className="text-xs font-mono font-bold tracking-widest text-white">NEUROSYNAPSE</span>
+            </div>
             <span className="eyebrow text-emerald-400">
               {isCognitiveOnly
                 ? '// MÓDULO 1 · PSICOMETRÍA COGNITIVA CHC'
